@@ -7,7 +7,7 @@ public class Profile {
 	int[] Preference;
 	
 	
-	public Profile(String name, int[] preference, float priority) {
+	public Profile(String name, float priority, int[] preference) {
 		this.name = name;
 		this.priority = priority;
 		Preference = preference;
