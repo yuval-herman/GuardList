@@ -11,7 +11,7 @@ public class App {
 		//generate population
 		Population population = new Population(); //instantiating like this is for testing
 														 //purposes and makes for random profiles
-		
+		population.generatePopulation(popSize, null);
 	}
 
 }

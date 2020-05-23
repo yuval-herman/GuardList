@@ -23,6 +23,10 @@ public class Population {
 	}
 	
 	public void generatePopulation(int popSize, Profile[] profiles) {
+		population = new ArrayList<Schedule>();
 		
+		for(int i = 0; i < popSize; i++) {
+			population.add(new Schedule(profiles));
+		}
 	}
 }
