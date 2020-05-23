@@ -1,6 +1,5 @@
 package GuardListApp;
 
-import dna.Dna;
 import dna.Population;
 
 public class App {
@@ -10,7 +9,9 @@ public class App {
 	
 	public static void main(String[] args) {
 		//generate population
-		Population population = new Population(popSize);
+		Population population = new Population(); //instantiating like this is for testing
+														 //purposes and makes for random profiles
+		
 	}
 
 }
