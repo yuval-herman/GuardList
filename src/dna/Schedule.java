@@ -4,9 +4,17 @@ import java.util.ArrayList;
 
 public class Schedule {
 
-	Profile[] profiles;
+	private Profile[] profiles;
 
 	public Schedule(Profile[] profiles) {
+		this.setProfiles(profiles);
+	}
+
+	public Profile[] getProfiles() {
+		return profiles;
+	}
+
+	public void setProfiles(Profile[] profiles) {
 		this.profiles = profiles;
 	}
 }

@@ -1,6 +1,7 @@
 package dna;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
 public class Population {
 
@@ -25,8 +26,13 @@ public class Population {
 	public void generatePopulation(int popSize, Profile[] profiles) {
 		population = new ArrayList<Schedule>();
 		
-		for(int i = 0; i < popSize; i++) {
-			population.add(new Schedule(profiles));
+		for(int i = 0; i < popSize; i++) { //deep copy profiles TODO either improve or make it a function🤦
+			Profile[] temp = new Profile[profiles.length];
+			for (int j = 0 ; j<temp.length; j++) {
+				temp[j] = new Profile(profiles[j].getName(), profiles[j].getPriority(),
+						profiles[j].getPreference(), profiles[j].getPost());
+			}
+			population.add(new Schedule(temp));
 		}
 	}
 }
