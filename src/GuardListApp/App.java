@@ -1,5 +1,6 @@
 package GuardListApp;
 
+import dna.Dna;
 import dna.Population;
 import dna.Profile;
 
@@ -12,12 +13,17 @@ public class App {
 		//generate population
 		Population population = new Population(); //instantiating like this is for testing
 														 //purposes and makes for random profiles
-		Profile[] profiles = new Profile[5];
+		Dna[] profiles = new Dna[5];
 		for(int i = 0; i<profiles.length;i++) {
-			profiles[i] = new Profile();
+			profiles[i] = new Dna(0, new Profile());
 		}
 		population.generatePopulation(popSize, profiles);
-		population.getPopulation().get(0).getProfiles()[0].setPost(new int[] {1, 2});
+		
+		//main loop
+		while (true) {
+			//calculate fitness
+			
+		}
 	}
 
 }

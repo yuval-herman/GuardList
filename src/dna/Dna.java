@@ -6,7 +6,6 @@ public class Dna {
 
 	int fitness;
 	Profile genome;
-	static int instNum;
 	
 	public Dna(int fitness, Profile genome) {
 		this.fitness = fitness;
