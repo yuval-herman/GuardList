@@ -3,6 +3,7 @@ package GuardListApp;
 import dna.Dna;
 import dna.Population;
 import dna.Profile;
+import dna.Schedule;
 
 public class App {
 	
@@ -13,11 +14,11 @@ public class App {
 		//generate population
 		Population population = new Population(); //instantiating like this is for testing
 														 //purposes and makes for random profiles
-		Dna[] profiles = new Dna[5];
-		for(int i = 0; i<profiles.length;i++) {
-			profiles[i] = new Dna(0, new Profile());
+		Profile[] schedule = new Profile[5];
+		for(int i = 0; i<schedule.length;i++) {
+			schedule[i] = new Profile();
 		}
-		population.generatePopulation(popSize, profiles);
+		population.generatePopulation(popSize, schedule);
 		
 		//main loop
 		while (true) {

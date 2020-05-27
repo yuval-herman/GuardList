@@ -5,34 +5,34 @@ import java.util.Arrays;
 
 public class Population {
 
-	private ArrayList<Schedule> population;
+	private ArrayList<Dna> population;
 
-	public Population(ArrayList<Schedule> population) {
+	public Population(ArrayList<Dna> population) {
 		this.setPopulation(population);
 	}
 	
 	public Population() {
-		this.setPopulation(new ArrayList<Schedule>());
+		this.setPopulation(new ArrayList<Dna>());
 	}
 
-	public ArrayList<Schedule> getPopulation() {
+	public ArrayList<Dna> getPopulation() {
 		return population;
 	}
 
-	public void setPopulation(ArrayList<Schedule> population) {
+	public void setPopulation(ArrayList<Dna> population) {
 		this.population = population;
 	}
 	
-	public void generatePopulation(int popSize, Dna[] profiles) {
-		population = new ArrayList<Schedule>();
+	public void generatePopulation(int popSize, Profile[] profiles) {
+		population = new ArrayList<Dna>();
 		
 		for(int i = 0; i < popSize; i++) { //deep copy profiles TODO either improve or make it a function🤦
 			Profile[] temp = new Profile[profiles.length];
 			for (int j = 0 ; j<temp.length; j++) {
-				temp[j] = new Profile(profiles[j].genome.getName(), profiles[j].genome.getPriority(),
-						profiles[j].genome.getPreference(), profiles[j].genome.getPost());
+				temp[j] = new Profile(profiles[j].getName(), profiles[j].getPriority(),
+						profiles[j].getPreference(), profiles[j].getPost());
 			}
-			population.add(new Schedule(temp));
+			population.add(new Dna(0, new Schedule(temp)));
 		}
 	}
 	

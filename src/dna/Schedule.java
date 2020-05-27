@@ -9,6 +9,10 @@ public class Schedule {
 	public Schedule(Profile[] profiles) {
 		this.setProfiles(profiles);
 	}
+	
+	public Schedule(int num) { //TODO make profile array
+		this.setProfiles(profiles);
+	}
 
 	public Profile[] getProfiles() {
 		return profiles;

@@ -5,11 +5,15 @@ import java.util.Random;
 public class Dna {
 
 	int fitness;
-	Profile genome;
+	Schedule genome;
 	
-	public Dna(int fitness, Profile genome) {
+	public Dna(int fitness, Schedule genome) {
 		this.fitness = fitness;
 		this.genome = genome;
+	}
+	
+	public void calculateFitness() {
+		
 	}
 	/*
 	public Dna crossover(Dna mate) {
