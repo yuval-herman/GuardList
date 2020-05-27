@@ -4,7 +4,7 @@ import java.util.Random;
 
 public class Dna {
 
-	int fitness;
+	float fitness;
 	Schedule genome;
 	
 	public Dna(int fitness, Schedule genome) {
@@ -13,7 +13,9 @@ public class Dna {
 	}
 	
 	public void calculateFitness() {
-		
+		for (Profile profile : genome.getProfiles()) {
+			fitness += (Math.abs(profile.getPost()[1] - profile.getPreference()[1])+1) / profile.getPriority();
+		}
 	}
 	/*
 	public Dna crossover(Dna mate) {
