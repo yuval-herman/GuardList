@@ -21,4 +21,19 @@ public class Schedule {
 	public void setProfiles(Profile[] profiles) {
 		this.profiles = profiles;
 	}
+
+	public void mutate(double mutChance) {
+		for (int i = 0; i < profiles.length; i++) {
+			profiles[i].mutate(mutChance);
+		}
+	}
+
+	public Schedule duplicate() {
+		Profile[] newProfiles = new Profile[profiles.length];
+		for (int i = 0; i < profiles.length; i++) {
+			newProfiles[i] = profiles[i].duplicate();
+		}
+		Schedule dupli = new Schedule(newProfiles);
+		return dupli;
+	}
 }

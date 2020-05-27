@@ -7,10 +7,11 @@ import dna.Schedule;
 
 public class App {
 	
-	static int popSize = 250;
-	static double mutChance = 0.0085;
+	static int popSize = 200;
+	static double mutChance = 0.001;
 	
 	public static void main(String[] args) {
+		
 		//generate population
 		Population population = new Population(); //instantiating like this is for testing
 														 //purposes and makes for random profiles
@@ -20,11 +21,24 @@ public class App {
 		}
 		population.generatePopulation(popSize, schedule);
 		
-		//main loop
-		while (true) {
-			//calculate fitness
-			
-		}
-	}
+		//calculate fitness
+		population.calculateFitness();
 
+		//population.printFitness();
+		//main loop
+		int i=0;
+		while (i<1000) {
+			//calculate fitness
+			population.calculateFitness();
+			//crossover+new generation
+			population.newGeneration(population.crossover());
+			//mutation
+			population.mutation(mutChance);
+			
+			i++;
+		}
+
+		population.calculateFitness();
+		population.printFitness();
+	}
 }

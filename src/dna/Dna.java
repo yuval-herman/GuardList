@@ -7,27 +7,31 @@ public class Dna {
 	float fitness;
 	Schedule genome;
 	
-	public Dna(int fitness, Schedule genome) {
+	public Dna(float fitness, Schedule genome) {
 		this.fitness = fitness;
 		this.genome = genome;
 	}
 	
 	public void calculateFitness() {
+		fitness=0;
 		for (Profile profile : genome.getProfiles()) {
 			fitness += (Math.abs(profile.getPost()[1] - profile.getPreference()[1])+1) / profile.getPriority();
 		}
 	}
-	/*
+	
 	public Dna crossover(Dna mate) {
-		char[] n=new char[genome.length]; 
-        
-        // Copy the array a into n 
-        System.arraycopy(Arrays.copyOfRange(genome, 0, genome.length/2), 0, n, 0, genome.length/2); 
-        // Copy the array b into n 
-        System.arraycopy(Arrays.copyOfRange(mate.genome, mate.genome.length/2, mate.genome.length), 0, n, genome.length/2, mate.genome.length/2); 
-        return new Dna(0, n);
+		Random r = new Random();
+		Profile[] newProfileArr = new Profile[genome.getProfiles().length];
+		for (int i = 0; i < genome.getProfiles().length; i++) {
+			newProfileArr[i] = r.nextFloat() < 0.5 ? genome.getProfiles()[i].duplicate() : mate.genome.getProfiles()[i].duplicate();
+		}
+		return new Dna(0, new Schedule(newProfileArr));
 	}
 	
+	public Dna duplicate() {
+		return new Dna(fitness, genome.duplicate());
+	}
+	/*
 	public void mutation(double mutChance) {
 		Random r = new Random();
 		for(int i = 0; i<genome.length;i++) {

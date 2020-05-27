@@ -7,7 +7,7 @@ public class Profile {
 	private static int number; //for testing purposes
 	private String name;
 	private float priority; //the algorithm priority to satisfy the preference
-	private int[] Preference; //the preference for a post TODO make a 2D array to keep more then one preference
+	private int[] preference; //the preference for a post TODO make a 2D array to keep more then one preference
 	private int[] post; //first cell for what post, second for time
 	
 	public Profile(String name, float priority, int[] preference, int[] post) {
@@ -35,11 +35,11 @@ public class Profile {
 	}
 
 	public int[] getPreference() {
-		return Preference;
+		return preference;
 	}
 
 	public void setPreference(int[] preference) {
-		Preference = preference;
+		this.preference = preference;
 	}
 
 	public Profile() {
@@ -47,8 +47,8 @@ public class Profile {
 		Random r = new Random();
 		this.setName(String.valueOf(number));
 		this.priority = r.nextFloat();
-		int[] temp = {r.nextInt(5), r.nextInt(5), r.nextInt(5)};
-		Preference = temp;
+		int[] temp = {r.nextInt(5), r.nextInt(5)};
+		preference = temp;
 	}
 
 	public String getName() {
@@ -65,5 +65,16 @@ public class Profile {
 
 	public void setPost(int[] post) {
 		this.post = post;
+	}
+
+	public void mutate(double mutChance) {
+		Random r = new Random();
+		if(r.nextDouble() < mutChance) {
+			setPost(new int[]{post[0], r.nextInt(5)});
+		}
+	}
+
+	public Profile duplicate() {
+		return new Profile(name, priority, preference, post);
 	}
 }
