@@ -3,35 +3,32 @@ package GuardListApp;
 import dna.Dna;
 import dna.Population;
 import dna.Profile;
-import dna.Schedule;
 
 public class App {
 	
 	static int popSize = 200;
-	static double mutChance = 0.001;
+	static double mutChance = 0.01;
 	
 	public static void main(String[] args) {
-		
+		int[] range = new int[] {1, 5}; //first cell for number of stations, second for number of people
 		//generate population
-		Population population = new Population(); //instantiating like this is for testing
-														 //purposes and makes for random profiles
 		Profile[] schedule = new Profile[5];
 		for(int i = 0; i<schedule.length;i++) {
 			schedule[i] = new Profile();
 		}
-		population.generatePopulation(popSize, schedule);
 		
-		//calculate fitness
-		population.calculateFitness();
-
-		//population.printFitness();
+		Population population = new Population(range); //instantiating like this is for testing
+														 //purposes and makes for random profiles
+		population.generatePopulation(popSize, schedule);
 		//main loop
 		int i=0;
-		while (i<1000) {
+		while (i<200) {
+			System.out.println("generation->" + i);
 			//calculate fitness
 			population.calculateFitness();
 			//crossover+new generation
-			population.newGeneration(population.crossover());
+			Dna[] temp = population.crossover();
+			population.newGeneration(temp);
 			//mutation
 			population.mutation(mutChance);
 			
@@ -39,6 +36,9 @@ public class App {
 		}
 
 		population.calculateFitness();
-		population.printFitness();
+		
+//		System.out.println(population);
+		population.evaluate();
+//		population.printFitness();
 	}
 }

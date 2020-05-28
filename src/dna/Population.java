@@ -1,21 +1,32 @@
 package dna;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Iterator;
+import java.util.Collections;
+import java.util.List;
 import java.util.Random;
 
 
 public class Population {
 
 	private ArrayList<Dna> population;
+	private int range[];
 
-	public Population(ArrayList<Dna> population) {
+	public Population(ArrayList<Dna> population,int range[]) {
 		this.setPopulation(population);
+		this.setRange(range);
 	}
 	
-	public Population() {
+	public Population(int range[]) {
 		this.setPopulation(new ArrayList<Dna>());
+		this.setRange(range);
+	}
+
+	public int[] getRange() {
+		return range;
+	}
+
+	public void setRange(int[] range) {
+		this.range = range;
 	}
 
 	public ArrayList<Dna> getPopulation() {
@@ -27,28 +38,34 @@ public class Population {
 	}
 	
 	public void generatePopulation(int popSize, Profile[] profiles) {
-		population = new ArrayList<Dna>();
+		population = new ArrayList<Dna>(); //new population
 		Random r = new Random();
 		
-		for(int i = 0; i < popSize; i++) { //deep copy profiles TODO either improve or make it a function🤦
+		for(int i = 0; i < popSize; i++) { //deep copy profiles
 			Profile[] temp = new Profile[profiles.length];
+			List<Integer> psArr = new ArrayList<Integer>();
+			for (int k : new int[] {1,2,3,4,5}) psArr.add(k);
+			Collections.shuffle(psArr);
 			for (int j = 0 ; j<temp.length; j++) {
-				temp[j] = new Profile(profiles[j].getName(), profiles[j].getPriority(),
-						profiles[j].getPreference(), new int[]{1, r.nextInt(5)});
+				temp[j] = profiles[j].duplicate();
+				temp[j].setPost(new int[] {1, psArr.get(j)});
 			}
+			
 			population.add(new Dna(0, new Schedule(temp)));
 		}
 	}
 	
 	public void calculateFitness() {
 		for (Dna dna : population) {
-			dna.calculateFitness();
+			dna.calculateFitness(range);
 		}
 	}
 	
 	public Dna[] crossover() {
 		ArrayList<Dna> newpop = new ArrayList<Dna>();
+		
 		for(int i = 0; i < population.size(); i++) {
+//			System.out.println(population.get(i).fitness);
 			for (int j = 0; j <= population.get(i).fitness; j++) {
 				newpop.add(population.get(i).duplicate());
 			}
@@ -75,5 +92,46 @@ public class Population {
 		for (Dna dna : population) {
 			System.out.println(dna.fitness);
 		}
+	}
+
+	public void evaluate() {
+		for (Dna dna : population) {
+			if(dna.evaluate()) {
+				System.out.println(dna);
+			}
+		}
+	}
+	
+	public void evaluate(ArrayList<Dna> pop) {
+		for (Dna dna : pop) {
+			if(dna.evaluate()) {
+				System.out.println(dna);
+			}
+		}
+	}
+	
+	public boolean checkError(ArrayList<Dna> pop) {
+		for (Dna dna : pop) {
+			if(!dna.evaluate()) {
+				System.out.println(dna);
+				return false;
+			}
+		}
+		return true;
+	}
+	
+	public boolean checkError() {
+		for (Dna dna : population) {
+			if(!dna.evaluate()) {
+				System.out.println(dna);
+				return false;
+			}
+		}
+		return true;
+	}
+	
+	@Override
+	public String toString() {
+		return "Population [\npopulation=" + population + "\n]";
 	}
 }

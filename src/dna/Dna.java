@@ -1,33 +1,62 @@
 package dna;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.Random;
 
-public class Dna {
+public class Dna implements Comparator<Dna> {
 
-	float fitness;
+	int fitness;
 	Schedule genome;
+	boolean eval=false;
 	
-	public Dna(float fitness, Schedule genome) {
+	public Dna(int fitness, Schedule genome) {
 		this.fitness = fitness;
 		this.genome = genome;
 	}
 	
-	public void calculateFitness() {
-		fitness=0;
-		for (Profile profile : genome.getProfiles()) {
-			fitness += (Math.abs(profile.getPost()[1] - profile.getPreference()[1])+1) / profile.getPriority();
-		}
+	@Override
+	public String toString() {
+		return "Dna [\nfitness=" + fitness + ", genome=" + genome + "\n]";
+	}
+
+	public void calculateFitness(int range[]) {
+		fitness = genome.calculateFitness(range);
 	}
 	
-	public Dna crossover(Dna mate) {
+	public Dna crossover(Dna mate) { //TODO somehow fix this mess
 		Random r = new Random();
 		Profile[] newProfileArr = new Profile[genome.getProfiles().length];
 		for (int i = 0; i < genome.getProfiles().length; i++) {
-			newProfileArr[i] = r.nextFloat() < 0.5 ? genome.getProfiles()[i].duplicate() : mate.genome.getProfiles()[i].duplicate();
+			if(r.nextFloat() < 0.5f && !contain(newProfileArr ,genome.getProfiles()[i], i)) {
+				newProfileArr[i] = genome.getProfiles()[i].duplicate();
+			} else {
+//				if(contain(newProfileArr ,mate.genome.getProfiles()[i], i)) {
+//					return r.nextFloat() < 0.5f ? duplicate() :mate.duplicate();
+//				}
+				newProfileArr[i] = mate.genome.getProfiles()[i].duplicate();
+			}
 		}
 		return new Dna(0, new Schedule(newProfileArr));
+//		return mate;
 	}
 	
+	
+	
+	private boolean contain(Profile[] newProfileArr, Profile profile, int j) {
+		for (int i = 0; i < newProfileArr.length; i++) {
+			if (newProfileArr[i+1] == null) {
+				break;
+			}
+			if (j == 0) {
+				break;
+			}
+			if (Arrays.equals(newProfileArr[i].getPost(), profile.getPost())) { 
+				return true; 
+			}
+		}
+		return false;
+	}
+
 	public Dna duplicate() {
 		return new Dna(fitness, genome.duplicate());
 	}
@@ -81,5 +110,14 @@ public class Dna {
 	public String getStringGenome() {
 		return String.copyValueOf(genome);
 	}
-*/	
+*/
+
+	public boolean evaluate() {
+		return genome.evaluate();
+	}
+
+	@Override
+	public int compare(Dna arg0, Dna arg1) {
+		return (int) (arg0.fitness-arg1.fitness);
+	}
 }
