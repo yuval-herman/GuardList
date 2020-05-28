@@ -30,20 +30,34 @@ public class Dna implements Comparator<Dna> {
 			if(r.nextFloat() < 0.5f && !contain(newProfileArr ,genome.getProfiles()[i], i)) {
 				newProfileArr[i] = genome.getProfiles()[i].duplicate();
 			} else {
-//				if(contain(newProfileArr ,mate.genome.getProfiles()[i], i)) {
-//					return r.nextFloat() < 0.5f ? duplicate() :mate.duplicate();
-//				}
+				if(contain(newProfileArr ,mate.genome.getProfiles()[i], i)) {
+					continue;
+				}
 				newProfileArr[i] = mate.genome.getProfiles()[i].duplicate();
 			}
 		}
-		return new Dna(0, new Schedule(newProfileArr));
+		return new Dna(0, new Schedule(findMissingPost(newProfileArr)));
 //		return mate;
 	}
 	
-	
+	private Profile[] findMissingPost(Profile[] newProfileArr) {
+		for (int i = 0; i < newProfileArr.length; i++) {
+			if(!contain(newProfileArr, genome.getProfiles()[i], i)) {
+				for (int j = 0; j < newProfileArr.length; j++) {
+					if (newProfileArr[j] == null) {
+						newProfileArr[j] = genome.getProfiles()[i];
+					}
+				}
+			}
+		}
+		return newProfileArr;
+	}
 	
 	private boolean contain(Profile[] newProfileArr, Profile profile, int j) {
 		for (int i = 0; i < newProfileArr.length; i++) {
+			if (i+1==newProfileArr.length) {
+				break;
+			}
 			if (newProfileArr[i+1] == null) {
 				break;
 			}

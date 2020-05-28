@@ -22,13 +22,13 @@ public class App {
 		population.generatePopulation(popSize, schedule);
 		//main loop
 		int i=0;
-		while (i<200) {
+		while (i<100) {
 			System.out.println("generation->" + i);
 			//calculate fitness
 			population.calculateFitness();
 			//crossover+new generation
-			Dna[] temp = population.crossover();
-			population.newGeneration(temp);
+//			Dna[] temp = population.crossover();
+			population.newGeneration(population.crossover());
 			//mutation
 			population.mutation(mutChance);
 			
@@ -37,7 +37,7 @@ public class App {
 
 		population.calculateFitness();
 		
-//		System.out.println(population);
+		System.out.println(population);
 		population.evaluate();
 //		population.printFitness();
 	}
