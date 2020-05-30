@@ -130,6 +130,16 @@ public class Population {
 		return true;
 	}
 	
+	public boolean checkError(Profile[] original) {
+		for (Dna dna : population) {
+			if(!dna.evaluate(original)) {
+				System.out.println(dna);
+				return false;
+			}
+		}
+		return true;
+	}
+	
 	@Override
 	public String toString() {
 		return "Population [\npopulation=" + population + "\n]";

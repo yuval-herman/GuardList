@@ -1,5 +1,7 @@
 package GuardListApp;
 
+import java.util.Arrays;
+
 import dna.Dna;
 import dna.Population;
 import dna.Profile;
@@ -22,7 +24,7 @@ public class App {
 		population.generatePopulation(popSize, schedule);
 		//main loop
 		int i=0;
-		while (i<100) {
+		while (i<1000) {
 			System.out.println("generation->" + i);
 			//calculate fitness
 			population.calculateFitness();
@@ -37,8 +39,9 @@ public class App {
 
 		population.calculateFitness();
 		
-		System.out.println(population);
+//		System.out.println(population);
 		population.evaluate();
+		System.out.println(Arrays.deepToString(schedule));
 //		population.printFitness();
 	}
 }
