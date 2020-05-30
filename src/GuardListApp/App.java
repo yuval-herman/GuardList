@@ -12,9 +12,9 @@ public class App {
 	static double mutChance = 0.01;
 	
 	public static void main(String[] args) {
-		int[] range = new int[] {1, 5}; //first cell for number of stations, second for number of people
+		int[] range = new int[] {1, 10}; //first cell for number of stations, second for number of people
 		//generate population
-		Profile[] schedule = new Profile[5];
+		Profile[] schedule = new Profile[range[1]];
 		for(int i = 0; i<schedule.length;i++) {
 			schedule[i] = new Profile();
 		}
@@ -24,7 +24,7 @@ public class App {
 		population.generatePopulation(popSize, schedule);
 		//main loop
 		int i=0;
-		while (i<1000) {
+		while (i<100) {
 			System.out.println("generation->" + i);
 			//calculate fitness
 			population.calculateFitness();
@@ -40,7 +40,7 @@ public class App {
 		population.calculateFitness();
 		
 //		System.out.println(population);
-		population.evaluate();
+//		population.evaluate();
 		System.out.println(Arrays.deepToString(schedule));
 //		population.printFitness();
 	}

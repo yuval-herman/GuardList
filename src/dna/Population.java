@@ -44,7 +44,7 @@ public class Population {
 		for(int i = 0; i < popSize; i++) { //deep copy profiles
 			Profile[] temp = new Profile[profiles.length];
 			List<Integer> psArr = new ArrayList<Integer>();
-			for (int k : new int[] {1,2,3,4,5}) psArr.add(k);
+			for (int k = 1; k<=range[1]; k++) psArr.add(k);
 			Collections.shuffle(psArr);
 			for (int j = 0 ; j<temp.length; j++) {
 				temp[j] = profiles[j].duplicate();
@@ -97,6 +97,14 @@ public class Population {
 	public void evaluate() {
 		for (Dna dna : population) {
 			if(dna.evaluate()) {
+				System.out.println(dna);
+			}
+		}
+	}
+	
+	public void devaluate() {
+		for (Dna dna : population) {
+			if(!dna.evaluate()) {
 				System.out.println(dna);
 			}
 		}

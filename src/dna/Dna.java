@@ -29,10 +29,10 @@ public class Dna implements Comparator<Dna> {
 		
 		for (int i = 0; i < genome.getProfiles().length; i++) {
 			
-			if(r.nextFloat() < 0.5f && !contain(newProfileArr ,genome.getProfiles()[i], i)) {
+			if(r.nextFloat() < 0.5f && !contain(newProfileArr ,genome.getProfiles()[i])) {
 				newProfileArr[i] = genome.getProfiles()[i].duplicate();
 			} else {
-				if(!contain(newProfileArr ,mate.genome.getProfiles()[i], i)) {
+				if(!contain(newProfileArr ,mate.genome.getProfiles()[i])) {
 					newProfileArr[i] = mate.genome.getProfiles()[i].duplicate();
 				}
 			}
@@ -44,11 +44,12 @@ public class Dna implements Comparator<Dna> {
 	
 	private Profile[] findMissingPost(Profile[] newProfileArr) {
 		for (int i = 0; i < newProfileArr.length; i++) {
-			if(!contain(newProfileArr, genome.getProfiles()[i], i)) {
+			if(!contain(newProfileArr, genome.getProfiles()[i])) {
 				for (int j = 0; j < newProfileArr.length; j++) {
 					if (newProfileArr[j] == null) {
 						newProfileArr[j] = genome.getProfiles()[j];
 						newProfileArr[j].setPost(genome.getProfiles()[i].getPost());
+						break;
 					}
 				}
 			}
@@ -56,10 +57,7 @@ public class Dna implements Comparator<Dna> {
 		return newProfileArr;
 	}
 	
-	private boolean contain(Profile[] newProfileArr, Profile profile, int j) {
-		if (j == 0) {
-			return false;
-		}
+	private boolean contain(Profile[] newProfileArr, Profile profile) {
 		for (int i = 0; i < newProfileArr.length; i++) {
 			if (newProfileArr[i] == null) {
 				break;
