@@ -23,6 +23,26 @@ public class Dna implements Comparator<Dna> {
 		fitness = genome.calculateFitness(range);
 	}
 	
+	private Profile[] sortProfiles() {
+		Profile[] tempProfiles = genome.getProfiles().clone();
+		Arrays.sort(tempProfiles, new Comparator<Profile>() {
+			@Override
+			public int compare(Profile o1, Profile o2) {
+			return o1.getPost()[1]-o2.getPost()[1];
+			}});
+		return tempProfiles;
+		}
+	
+	public Dna crossover(Dna mate) {
+		Profile[] tempProfiles = new Profile[mate.genome.getProfiles().length];
+		Random r = new Random();
+		for (int i = 0; i < tempProfiles.length; i++) {
+			for (int j = 0; j < tempProfiles.length; j++) {
+				
+			}
+		}
+	}
+	
 	public Dna crossover(Dna mate) { //TODO somehow fix this mess
 		Random r = new Random();
 		Profile[] newProfileArr = new Profile[genome.getProfiles().length];
@@ -43,30 +63,37 @@ public class Dna implements Comparator<Dna> {
 	}
 	
 	private Profile[] findMissingPost(Profile[] newProfileArr) {
+		int in = 0;
+		int ino =0;
 		for (int i = 0; i < newProfileArr.length; i++) {
 			if(!contain(newProfileArr, genome.getProfiles()[i])) {
+				ino++;
 				for (int j = 0; j < newProfileArr.length; j++) {
 					if (newProfileArr[j] == null) {
 						newProfileArr[j] = genome.getProfiles()[j];
 						newProfileArr[j].setPost(genome.getProfiles()[i].getPost());
+						in++;
 						break;
 					}
 				}
 			}
+		}
+		if (newProfileArr[9] ==  null) {
+			System.out.println(ino);
+			System.out.println(in);
+			System.out.println();
 		}
 		return newProfileArr;
 	}
 	
 	private boolean contain(Profile[] newProfileArr, Profile profile) {
 		for (int i = 0; i < newProfileArr.length; i++) {
-			if (newProfileArr[i] == null) {
-				break;
-			}
-			if (Arrays.equals(newProfileArr[i].getPost(), profile.getPost())) { 
+			try {
+				if (Arrays.equals(newProfileArr[i].getPost(), profile.getPost())) { 
 				return true; 
-			}
-			if (i+1==newProfileArr.length) {
-				break;
+				}
+			} catch (Exception e) {
+				continue;
 			}
 		}
 		return false;
