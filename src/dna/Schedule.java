@@ -32,7 +32,7 @@ public class Schedule {
 			}
 		}
 	}
-
+	
 	public Schedule duplicate() {
 		Profile[] newProfiles = new Profile[profiles.length];
 		for (int i = 0; i < profiles.length; i++) {

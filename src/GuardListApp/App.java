@@ -1,8 +1,5 @@
 package GuardListApp;
 
-import java.util.Arrays;
-
-import dna.Dna;
 import dna.Population;
 import dna.Profile;
 
@@ -15,9 +12,9 @@ public class App {
 		int[] range = new int[] {1, 10}; //first cell for number of stations, second for number of people
 		//generate population
 		Profile[] schedule = new Profile[range[1]];
-		for(int i = 0; i<schedule.length;i++) {
-			schedule[i] = new Profile();
-		}
+//		for(int i = 0; i<schedule.length;i++) {
+//			schedule[i] = new Profile();
+//		}
 		
 		Population population = new Population(range); //instantiating like this is for testing
 														 //purposes and makes for random profiles

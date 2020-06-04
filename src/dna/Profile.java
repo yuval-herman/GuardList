@@ -1,5 +1,6 @@
 package dna;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Random;
 
@@ -57,7 +58,7 @@ public class Profile {
 		do { //just making sure i done get a zero
 			this.priority = r.nextFloat();
 		} while (this.priority==0f);
-		preference = new int[]{1, r.nextInt(5)};
+		preference = new int[]{1, r.nextInt(10)};
 	}
 
 	public String getName() {

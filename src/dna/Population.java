@@ -1,7 +1,6 @@
 package dna;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
@@ -40,8 +39,6 @@ public class Population {
 	
 	public void generatePopulation(int popSize, Profile[] profiles) {
 		population = new ArrayList<Dna>(); //new population
-		Random r = new Random();
-		
 		for(int i = 0; i < popSize; i++) { //deep copy profiles
 			Profile[] temp = new Profile[profiles.length];
 			List<Integer> psArr = new ArrayList<Integer>();
