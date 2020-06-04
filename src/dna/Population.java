@@ -1,6 +1,7 @@
 package dna;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
@@ -89,17 +90,29 @@ public class Population {
 	}
 	
 	public void printFitness() {
+		ArrayList<Integer> fitnesArr = new ArrayList<Integer>();
 		for (Dna dna : population) {
-			System.out.println(dna.fitness);
+			fitnesArr.add(dna.fitness);
 		}
+		fitnesArr.sort(null);
+		for(int i = 0; i < fitnesArr.size() / 2; i++)
+		{
+			int temp = fitnesArr.get(i);
+			fitnesArr.set(i, fitnesArr.get(fitnesArr.size() - i - 1));
+			fitnesArr.set(fitnesArr.size() - i - 1, temp);
+		}
+		System.out.println(fitnesArr);
 	}
 
 	public void evaluate() {
+		int counter = 0;
 		for (Dna dna : population) {
 			if(dna.evaluate()) {
 				System.out.println(dna);
+				counter++;
 			}
 		}
+		System.out.println(counter + " possible schedules");
 	}
 	
 	public void devaluate() {

@@ -90,7 +90,7 @@ public class Profile {
 	public int calculateFitness(int range[]) {
 		int stationDiff = Math.abs(preference[0]-post[0])+1;
 		int timeDiff = Math.abs(preference[1]-post[1])+1;
-		fitness = (5*priority/timeDiff);
+		fitness = (100*priority/timeDiff)-(100/range[1]);
 //		fitness = timeDiff;
 		return (int) (fitness*10);
 	}

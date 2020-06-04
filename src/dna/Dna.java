@@ -33,28 +33,18 @@ public class Dna implements Comparator<Dna> {
 		return tempProfiles;
 		}
 	
-	public Dna crossover(Dna mate) {
-		Profile[] tempProfiles = new Profile[mate.genome.getProfiles().length];
-		Random r = new Random();
-		for (int i = 0; i < tempProfiles.length; i++) {
-			for (int j = 0; j < tempProfiles.length; j++) {
-				
-			}
-		}
-	}
-	
 	public Dna crossover(Dna mate) { //TODO somehow fix this mess
 		Random r = new Random();
 		Profile[] newProfileArr = new Profile[genome.getProfiles().length];
 		
 		for (int i = 0; i < genome.getProfiles().length; i++) {
 			
-			if(r.nextFloat() < 0.5f && !contain(newProfileArr ,genome.getProfiles()[i])) {
+			if(r.nextFloat() < 0.5f) {// && !contain(newProfileArr ,genome.getProfiles()[i])) {
 				newProfileArr[i] = genome.getProfiles()[i].duplicate();
 			} else {
-				if(!contain(newProfileArr ,mate.genome.getProfiles()[i])) {
+			//	if(!contain(newProfileArr ,mate.genome.getProfiles()[i])) {
 					newProfileArr[i] = mate.genome.getProfiles()[i].duplicate();
-				}
+				//}
 			}
 			
 		}
@@ -155,7 +145,7 @@ public class Dna implements Comparator<Dna> {
 */
 
 	public boolean evaluate() {
-		return genome.evaluate();
+		return genome.hasDuplicates()>0;
 	}
 
 	public boolean evaluate(Profile[] original) {

@@ -42,13 +42,13 @@ public class Schedule {
 		return dupli;
 	}
 
-	public boolean evaluate() {
-		boolean duplicates=false;
+	public int hasDuplicates() {//TODO change return to not have the not sign and change every function using this method to accommodate
+		int duplicates=0;
 		for (int j=0;j<profiles.length;j++)
 		  for (int k=j+1;k<profiles.length;k++)
 		    if (k!=j && Arrays.equals(profiles[k].getPost() ,profiles[j].getPost()))
-		      duplicates=true;
-		return !duplicates;
+		      duplicates++;
+		return duplicates;
 	}
 
 	public int calculateFitness(int range[]) {
@@ -57,6 +57,10 @@ public class Schedule {
 			tempFitness+=profiles[i].calculateFitness(range);
 		}
 		tempFitness/=profiles.length;
+		int duplicates = hasDuplicates();
+		if (duplicates>0) {
+			tempFitness/=duplicates+1;
+		}
 		return tempFitness;
 	}
 }

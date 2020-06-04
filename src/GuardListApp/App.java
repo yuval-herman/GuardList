@@ -9,7 +9,7 @@ import dna.Profile;
 public class App {
 	
 	static int popSize = 200;
-	static double mutChance = 0.01;
+	static double mutChance = 0.001;
 	
 	public static void main(String[] args) {
 		int[] range = new int[] {1, 10}; //first cell for number of stations, second for number of people
@@ -24,8 +24,8 @@ public class App {
 		population.generatePopulation(popSize, schedule);
 		//main loop
 		int i=0;
-		while (i<100) {
-			System.out.println("generation->" + i);
+		while (i<1000) {
+//			System.out.println("generation->" + i);
 			//calculate fitness
 			population.calculateFitness();
 			//crossover+new generation
@@ -40,8 +40,9 @@ public class App {
 		population.calculateFitness();
 		
 //		System.out.println(population);
-//		population.evaluate();
-		System.out.println(Arrays.deepToString(schedule));
-//		population.printFitness();
+		System.out.println("eval:");
+		population.evaluate();
+//		System.out.println(Arrays.deepToString(schedule));
+		population.printFitness();
 	}
 }
