@@ -1,11 +1,16 @@
 package dna;
 
-import java.util.ArrayList;
+import java.io.File;
+import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Random;
 
-public class Profile {
+public class Profile implements Serializable{
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 7581073385039458589L;
 	private static int number; //for testing purposes
 	private String name;
 	private float priority; //the algorithm priority to satisfy the preference, lower=better
