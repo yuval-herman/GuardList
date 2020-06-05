@@ -1,10 +1,15 @@
 package dna;
 
+import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Random;
 
-public class Schedule {
+public class Schedule implements Serializable{
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -3557971571091428047L;
 	private Profile[] profiles;
 
 	public Schedule(Profile[] profiles) {

@@ -1,9 +1,6 @@
 package GuardListApp;
 
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
-
+import dna.Dna;
 import dna.Population;
 import dna.Profile;
 
@@ -13,66 +10,35 @@ public class App {
 	static double mutChance = 0.001;
 	
 	public static void main(String[] args) {
-		/*String data = new String();
-		try {
-			FileReader config = new FileReader("testConfigFile.txt");
-			
-			int i; 
-		    while ((i=config.read()) != -1) {
-		    	switch ((char) i) {
-				case '=':
-					switch (data) {
-					case value:
-						
-						break;
-
-					default:
-						break;
-					}
-					break;
-
-				case '[':
-					
-					break;
-					
-				case ']':
-					
-					break;
-					
-				default:
-					data+=((char) i);
-					break;
-				}
-		  	}
-		    config.close();
-			
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}*/
-		
 		int[] range = new int[] {1, 10}; //first cell for number of stations, second for number of people
 		//generate population
-		Profile[] schedule = new Profile[range[1]];
-		for(int i = 0; i<schedule.length;i++) {
-			schedule[i] = new Profile();
-		}
+		Profile[] schedule = new Profile[]{new Profile("1", 0.1f, new int[] {1,1}, null),
+				new Profile("2", 0.2f, new int[] {1,2}, null),
+				new Profile("3", 0.3f, new int[] {1,3}, null),
+				new Profile("4", 0.4f, new int[] {1,4}, null),
+				new Profile("5", 0.5f, new int[] {1,5}, null),
+				new Profile("6", 0.6f, new int[] {1,6}, null),
+				new Profile("7", 0.7f, new int[] {1,7}, null),
+				new Profile("8", 0.8f, new int[] {1,8}, null),
+				new Profile("9", 0.9f, new int[] {1,9}, null),
+				new Profile("10", 1f, new int[] {1,1}, null),
+				};
 		
 		Population population = new Population(range); //instantiating like this is for testing
 														 //purposes and makes for random profiles
 		population.generatePopulation(popSize, schedule);
+		population.saveState("population.ser");
 		//main loop
+//		Population population = Population.loadState("population.ser");
+		
 		int i=0;
 		while (i<1000) {
-//			System.out.println("generation->" + i);
+			System.out.println("generation->" + i);
 			//calculate fitness
 			population.calculateFitness();
 			//crossover+new generation
-//			Dna[] temp = population.crossover();
-			population.newGeneration(population.crossover());
+			Dna[] temp = population.crossover();
+			population.newGeneration(temp);//population.crossover());
 			//mutation
 			population.mutation(mutChance);
 			
@@ -82,6 +48,7 @@ public class App {
 		population.calculateFitness();
 		
 //		System.out.println(population);
+		population.sortByFitness();
 		System.out.println("eval:");
 		population.evaluate();
 //		System.out.println(Arrays.deepToString(schedule));

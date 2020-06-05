@@ -1,13 +1,24 @@
 package dna;
 
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 
 
-public class Population {
+public class Population implements  Serializable{//Comparator<Dna>,
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 8857517385334250613L;
 	private ArrayList<Dna> population;
 	private int range[];
 
@@ -21,6 +32,36 @@ public class Population {
 		this.setRange(range);
 	}
 
+	public static Population loadState(String file) {
+	    ObjectInputStream in;
+	    Population pop = null;
+		try {
+			in = new ObjectInputStream(new FileInputStream(file));
+			pop = (Population) in.readObject();
+			in.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (ClassNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return pop;
+	}
+	
+	public void saveState(String file) {
+		ObjectOutputStream out;
+		try {
+			out = new ObjectOutputStream(new FileOutputStream(file));
+			out.writeObject(this);
+			out.flush();
+			out.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
 	public int[] getRange() {
 		return range;
 	}
@@ -60,16 +101,27 @@ public class Population {
 	}
 	
 	public Dna[] crossover() {
-		ArrayList<Dna> newpop = new ArrayList<Dna>();
+		sortByFitness();
 		
-		for(int i = 0; i < population.size(); i++) {
-//			System.out.println(population.get(i).fitness);
-			for (int j = 0; j <= population.get(i).fitness; j++) {
+		ArrayList<Dna> newpop = new ArrayList<Dna>();
+		for (int i = 0; i < population.size(); i++) {
+			newpop.add(population.get(GetRandomNumberLowBias(population.size()-1, 0, 2)).duplicate());
+		}
+		/*for(int i = population.size()-1; i >= population.size()/2; i--) {
+			for (int j = 0; j <= population.get(i).fitness; j+=2) {
 				newpop.add(population.get(i).duplicate());
 			}
-		}
+		}*/
 		return newpop.toArray(new Dna[newpop.size()]);
 	}
+	
+    private int GetRandomNumberLowBias(int max, int min, double probabilityPower)
+    {
+    	Random r = new Random();
+        double randomDouble = r.nextDouble();
+
+        return (int) Math.floor(min + (max + 1 - min) * (Math.pow(randomDouble, probabilityPower)));
+    }
 	
 	public void newGeneration(Dna[] temppop) {
 		ArrayList<Dna> newpop = new ArrayList<Dna>();
@@ -99,6 +151,9 @@ public class Population {
 			fitnesArr.set(fitnesArr.size() - i - 1, temp);
 		}
 		System.out.println(fitnesArr);
+		for(int i=0; i<=100;i++) {
+			
+		}
 	}
 
 	public void evaluate() {
@@ -156,6 +211,13 @@ public class Population {
 			}
 		}
 		return true;
+	}
+	
+	public void sortByFitness() {
+		Dna[] temp = population.toArray(new Dna[population.size()]);
+		Arrays.sort(temp);
+		population.clear();
+		population=new ArrayList<Dna>(Arrays.asList(temp));
 	}
 	
 	@Override

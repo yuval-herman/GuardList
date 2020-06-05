@@ -1,6 +1,5 @@
 package dna;
 
-import java.io.File;
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Random;

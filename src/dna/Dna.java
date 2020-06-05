@@ -1,10 +1,14 @@
 package dna;
+import java.io.Serializable;
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.Random;
 
-public class Dna implements Comparator<Dna> {
+public class Dna implements Serializable, Comparable<Dna>{
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -4163955073606402973L;
 	int fitness;
 	Schedule genome;
 	boolean eval=false;
@@ -22,16 +26,6 @@ public class Dna implements Comparator<Dna> {
 	public void calculateFitness(int range[]) {
 		fitness = genome.calculateFitness(range);
 	}
-	
-	private Profile[] sortProfiles() {
-		Profile[] tempProfiles = genome.getProfiles().clone();
-		Arrays.sort(tempProfiles, new Comparator<Profile>() {
-			@Override
-			public int compare(Profile o1, Profile o2) {
-			return o1.getPost()[1]-o2.getPost()[1];
-			}});
-		return tempProfiles;
-		}
 	
 	public Dna crossover(Dna mate) { //TODO somehow fix this mess
 		Random r = new Random();
@@ -156,9 +150,9 @@ public class Dna implements Comparator<Dna> {
 		}
 		return true;
 	}
-	
+
 	@Override
-	public int compare(Dna arg0, Dna arg1) {
-		return (int) (arg0.fitness-arg1.fitness);
+	public int compareTo(Dna o) {
+		return fitness-o.fitness;
 	}
 }
