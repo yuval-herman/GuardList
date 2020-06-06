@@ -120,7 +120,7 @@ public class Population implements  Serializable{//Comparator<Dna>,
     	Random r = new Random();
         double randomDouble = r.nextDouble();
 
-        return (int) Math.floor(min + (max + 1 - min) * (Math.pow(randomDouble, probabilityPower)));
+        return (int) Math.floor(max + (min + 1 - max) * (Math.pow(randomDouble, probabilityPower))); //Math.floor(min + (max + 1 - min) * (Math.pow(randomDouble, probabilityPower)));
     }
 	
 	public void newGeneration(Dna[] temppop) {

@@ -7,7 +7,7 @@ import dna.Profile;
 public class App {
 	
 	static int popSize = 200;
-	static double mutChance = 0.001;
+	static double mutChance = 0.01;
 	
 	public static void main(String[] args) {
 		int[] range = new int[] {1, 10}; //first cell for number of stations, second for number of people
@@ -32,7 +32,7 @@ public class App {
 //		Population population = Population.loadState("population.ser");
 		
 		int i=0;
-		while (i<1000) {
+		while (i<10000) {
 			System.out.println("generation->" + i);
 			//calculate fitness
 			population.calculateFitness();
