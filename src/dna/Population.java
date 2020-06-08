@@ -126,7 +126,7 @@ public class Population implements Serializable{//Comparator<Dna>,
 		return newpop.toArray(new Dna[newpop.size()]);
 	}*/
 	
-    private int GetRandomNumberLowBias(int max, int min, double probabilityPower)
+    private int randomNumberBias(int max, int min, double probabilityPower)
     {
     	Random r = new Random();
         double randomDouble = r.nextDouble();
@@ -138,7 +138,10 @@ public class Population implements Serializable{//Comparator<Dna>,
 		ArrayList<Dna> newpop = new ArrayList<Dna>();
 		Random r = new Random();
 		for(int i =0; i<population.size(); i++) {
-			newpop.add(population.get(GetRandomNumberLowBias(population.size()-1, 0, 2)).crossover(population.get(GetRandomNumberLowBias(population.size()-1, 0, 2))));
+			Dna tempDna = population.get(randomNumberBias(population.size()-1, 0, 2))
+					.crossover(population.get(randomNumberBias(population.size()-1, 0, 2)));
+			tempDna.calculateFitness();
+			newpop.add(tempDna);
 		}
 		population=newpop;
 	}

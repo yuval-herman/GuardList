@@ -34,18 +34,23 @@ public class App {
 //		Population population = Population.loadState("population.ser");
 		
 		int i=0;
-		while (population.evaluate()<170) {//(i<10000) {
+		
+		while (population.evaluate()<popSize/2.2) {//(i<10000) {
 			System.out.println("generation->" + i);
 			//calculate fitness
-			population.calculateFitness();
 			population.sortByFitness();
 			System.out.println("highest fitness="+population.getPopulation().get(199).getFitness());
 			System.out.println("number of possible schedules=" + population.evaluate());
 			//crossover+new generation
 			//Dna[] temp = population.crossover();
 			population.newGeneration();//population.crossover());
-			//mutation
-			population.mutation(mutChance);
+			//mutation+hyper mutation
+			population.sortByFitness();
+			if (population.getPopulation().get((int) (popSize/2)).getFitness() == population.getPopulation().get(popSize-1).getFitness()) {
+				population.mutation(mutChance*2);
+			} else {
+				population.mutation(mutChance);
+			}
 			
 			i++;
 		}
