@@ -12,7 +12,7 @@ public class App {
 	
 	public static void main(String[] args) {
 		ConsoleController consoleController = new ConsoleController();
-		int[] range = new int[] {2, 5}; //first cell for number of stations, second for number of people
+		consoleController.loadSchedule("schedule.ser");
 		//generate population
 		Profile[] profiles = new Profile[]{new Profile("1", 0.1f, new int[] {1,1}, null),
 				new Profile("2", 0.2f, new int[] {0,4}, null),
@@ -26,9 +26,10 @@ public class App {
 				new Profile("10", 0.99f, new int[] {1,4}, null),
 				};
 		
-		Population population = new Population(range); //instantiating like this is for testing
+		Population population = new Population(); //instantiating like this is for testing
 														 //purposes and makes for random profiles
-		population.generatePopulation(popSize, new Schedule(profiles, range));
+		
+		population.generatePopulation(popSize, consoleController.baseSchedule);
 		population.getPopulation().get(0).getGenome().saveState("schedule.ser");
 		//main loop
 //		Population population = Population.loadState("population.ser");
