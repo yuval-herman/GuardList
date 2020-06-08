@@ -81,12 +81,10 @@ public class Profile implements Serializable{
 		this.post = post;
 	}
 
-//	public void mutate(double mutChance) {
-//		Random r = new Random();
-//		if(r.nextDouble() < mutChance) {
-//			setPost(new int[]{post[0], r.nextInt(5)});
-//		}
-//	}
+	public void mutate(int[] range) {
+		Random r = new Random();
+		setPost(new int[]{r.nextInt(range[0]), r.nextInt(range[1])});
+	}
 
 	public Profile duplicate() {
 		return new Profile(name, priority, preference, post);
@@ -95,9 +93,17 @@ public class Profile implements Serializable{
 	public int calculateFitness(int range[]) {
 		int stationDiff = Math.abs(preference[0]-post[0])+1;
 		int timeDiff = Math.abs(preference[1]-post[1])+1;
-		fitness = (100*priority/timeDiff)-(100/range[1]);
-//		fitness = timeDiff;
+		fitness = (100*priority/stationDiff)-(100/range[0]);
+		fitness += (100*priority/timeDiff)-(100/range[1]);
 		return (int) (fitness*10);
+	}
+
+	public double getFitness() {
+		return fitness;
+	}
+
+	public void setFitness(double fitness) {
+		this.fitness = fitness;
 	}
 
 	public void switchWith(Profile profile) {

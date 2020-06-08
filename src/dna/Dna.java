@@ -11,6 +11,30 @@ public class Dna implements Serializable, Comparable<Dna>{
 	private static final long serialVersionUID = -4163955073606402973L;
 	int fitness;
 	Schedule genome;
+	public int getFitness() {
+		return fitness;
+	}
+
+	public void setFitness(int fitness) {
+		this.fitness = fitness;
+	}
+
+	public Schedule getGenome() {
+		return genome;
+	}
+
+	public void setGenome(Schedule genome) {
+		this.genome = genome;
+	}
+
+	public boolean isEval() {
+		return eval;
+	}
+
+	public void setEval(boolean eval) {
+		this.eval = eval;
+	}
+
 	boolean eval=false;
 	
 	public Dna(int fitness, Schedule genome) {
@@ -23,11 +47,11 @@ public class Dna implements Serializable, Comparable<Dna>{
 		return "Dna [\nfitness=" + fitness + ", genome=" + genome + "\n]";
 	}
 
-	public void calculateFitness(int range[]) {
-		fitness = genome.calculateFitness(range);
+	public void calculateFitness() {
+		fitness = genome.calculateFitness();
 	}
 	
-	public Dna crossover(Dna mate) { //TODO somehow fix this mess
+	public Dna crossover(Dna mate) {
 		Random r = new Random();
 		Profile[] newProfileArr = new Profile[genome.getProfiles().length];
 		
@@ -42,11 +66,11 @@ public class Dna implements Serializable, Comparable<Dna>{
 			}
 			
 		}
-		return new Dna(0, new Schedule(findMissingPost(newProfileArr)));
+		return new Dna(0, new Schedule(newProfileArr, genome.getRange()));
 //		return mate;
 	}
 	
-	private Profile[] findMissingPost(Profile[] newProfileArr) {
+	/*private Profile[] findMissingPost(Profile[] newProfileArr) {
 		int in = 0;
 		int ino =0;
 		for (int i = 0; i < newProfileArr.length; i++) {
@@ -68,7 +92,7 @@ public class Dna implements Serializable, Comparable<Dna>{
 			System.out.println();
 		}
 		return newProfileArr;
-	}
+	}*/
 	
 	private boolean contain(Profile[] newProfileArr, Profile profile) {
 		for (int i = 0; i < newProfileArr.length; i++) {
@@ -86,69 +110,9 @@ public class Dna implements Serializable, Comparable<Dna>{
 	public Dna duplicate() {
 		return new Dna(fitness, genome.duplicate());
 	}
-	/*
-	public void mutation(double mutChance) {
-		Random r = new Random();
-		for(int i = 0; i<genome.length;i++) {
-		    String alphabet = "AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz .,?:1234567890!@#$%^&*()+=-/";
-		    if(r.nextFloat()<mutChance) {
-		    	genome[i] = alphabet.charAt(r.nextInt(alphabet.length()));
-		    }
-		}
-	}
-	
-	@Override
-	public String toString() {
-		return "dna [fitness=" + fitness + ", genome=" + Arrays.toString(genome) + "]";
-	}
-
-	public void calcFitness(String str) {
-		char[] ans = str.toCharArray();
-		int fit=0;
-		for(int i=0;i<str.length();i++) {
-			if(genome[i]==ans[i]) {
-				fit++;
-			}
-		}
-		
-		fitness=fit;
-	}
-	
-	public double calcNormalizedFitness() {
-		return fitness != 0 ? fitness / (genome.length/100.0) / 100 : 0;
-	}
-	
-	public boolean evaluate() {
-		return fitness == genome.length;
-	}
-	
-	public char[] rndCharArr(int len) {
-		Random r = new Random();
-
-		char[] rndArr = new char[len];
-	    String alphabet = "AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz .,?:1234567890!@#$%^&*()+=-/";
-	    for (int i = 0; i < len; i++) {
-	        rndArr[i] = alphabet.charAt(r.nextInt(alphabet.length()));
-	    } // prints 50 random characters from alphabet
-		return rndArr;
-	}
-	
-	public String getStringGenome() {
-		return String.copyValueOf(genome);
-	}
-*/
 
 	public boolean evaluate() {
-		return genome.hasDuplicates()>0;
-	}
-
-	public boolean evaluate(Profile[] original) {
-		for (int i = 0; i< genome.getProfiles().length ; i++) {
-			if (!Arrays.equals(genome.getProfiles()[i].getPreference(), original[i].getPreference())) {
-				return false;
-			}
-		}
-		return true;
+		return genome.evaluate();
 	}
 
 	@Override
