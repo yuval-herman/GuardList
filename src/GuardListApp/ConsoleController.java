@@ -21,11 +21,13 @@ public class ConsoleController {
 	}
 	
 	public ConsoleController() {
+		this.basePopulation = new Population();
+		this.baseSchedule = new Schedule();
 	}
 	
 	public void chooseOperation() {
 		Scanner scanner = new Scanner(System.in);
-		System.out.println("choose operation:/n");
+		System.out.println("choose operation:\n");
 
 		System.out.println("1. calculate schedule from current data");
 		System.out.println("2. add profile");
@@ -33,25 +35,59 @@ public class ConsoleController {
 		System.out.println("4. edit locations");
 		System.out.print("->");
 		
-		switch (scanner.nextInt()) {
+		switch (Integer.valueOf(scanner.nextLine())) {
 		case 1:
-return;
-			break;
+			basePopulation.generatePopulation(400, baseSchedule);
+			return;
 		case 2:
-			Profile[] array = new Profile[baseSchedule.getProfiles().length + 1];
-			System.arraycopy(array, 0, baseSchedule.getProfiles(), 0, baseSchedule.getProfiles().length);
-			array[array.length] = new Profile();
+			System.out.print("\n\nwrite new name: ");
+			String name = scanner.nextLine();
 
+			System.out.print("\n\nwrite the priority: ");
+			float priority = Float.valueOf(scanner.nextLine());
+			
+			int[] preference = new int[2];
+			System.out.print("\n\nwrite location preference: ");
+			preference[0] = Integer.valueOf(scanner.nextLine());
+			System.out.print("\nwrite time preference: ");
+			preference[1] = Integer.valueOf(scanner.nextLine());
+			
+			baseSchedule.addProfile(new Profile(name, priority, preference, null));//TODO get user input
+			basePopulation.generatePopulation(basePopulation.getPopulation().size(), baseSchedule);
 			break;
 		case 3:
+			System.out.print("\n\nwrite name of profile: ");
+			Profile tempProfile = baseSchedule.findByName(scanner.nextLine());
+			
+			if (tempProfile == null) {
+				System.out.println("no profile by that name was found.");
+				break;
+			}
+			
+			System.out.print("\n\nwrite new name: ");
+			String name1 = scanner.nextLine();
 
+			System.out.print("\n\nwrite the priority: ");
+			float priority1 = scanner.nextFloat();
+			
+			int[] preference1 = new int[2];
+			System.out.print("\n\nwrite location preference: ");
+			preference1[0] = scanner.nextInt();
+			System.out.print("\nwrite time preference: ");
+			preference1[1] = scanner.nextInt();
+			
+			tempProfile.edit(name1, priority1, preference1, null);//TODO get user input
+			basePopulation.generatePopulation(basePopulation.getPopulation().size(), baseSchedule);
 			break;
 		case 4:
-
+			System.out.print("\n\nwrite number of locations and then number of hours: ");
+			
+			baseSchedule.setRange(new int[] {scanner.nextInt(), scanner.nextInt()});
+			basePopulation.generatePopulation(basePopulation.getPopulation().size(), baseSchedule);
 			break;
 
 		default:
-			break;
+			return;
 		}
 	}
 	

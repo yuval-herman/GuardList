@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.Random;
 
 public class Schedule implements Serializable{
@@ -16,6 +17,13 @@ public class Schedule implements Serializable{
 	private Profile[] profiles;
 	private int range[];
 
+	public void addProfile(Profile newProfile) {
+		Profile[] profiles2 = new Profile[profiles.length + 1];
+		System.arraycopy(profiles, 0, profiles2, 0, profiles.length);
+		profiles2[profiles.length] = newProfile;
+		setProfiles(profiles2);
+	}
+	
 	public int[] getRange() {
 		return range;
 	}
@@ -120,5 +128,19 @@ public class Schedule implements Serializable{
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+	}
+
+	public Profile findByName(String name) {
+		for (Profile profile : profiles) {
+			if (profile.getName().equals(name)) {
+				return profile;
+			}
+		}
+		return null;
+	}
+
+	public void editProfile(Profile newpProfile, int profileNumber) {
+		// TODO Auto-generated method stub
+		
 	}
 }

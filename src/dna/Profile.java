@@ -111,4 +111,11 @@ public class Profile implements Serializable{
 		setPost(profile.getPost());
 		profile.setPost(oldPost);
 	}
+
+	public void edit(String name, float priority, int[] preference, int[] post) {
+		this.setName(name);
+		this.setPriority(priority);
+		this.setPreference(preference);
+		this.setPost(post);
+	}
 }
