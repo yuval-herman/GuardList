@@ -82,7 +82,7 @@ public class Schedule implements Serializable{
 	}
 	
 	private int[] LocationSum() {
-		int[] tempRange = new int[range[0]];
+		int[] tempRange = new int[range.length];
 		for (int i = 0; i < tempRange.length; i++) {
 			for (int j = 0; j < profiles.length; j++) {
 				if (profiles[j].getPost()[0]==i) {
@@ -105,17 +105,18 @@ public class Schedule implements Serializable{
 		}
 		int[] tempRange = LocationSum();
 		for (int i = 0; i < tempRange.length; i++) {
-			tempFitness/=Math.abs(tempRange[i]-range[1])+1;
+			tempFitness/=Math.abs(tempRange[i]-range[i])+1;
 		}
 		return tempFitness;
 	}
 
 	public boolean evaluate() {
-		boolean fullPosts = true;
-		for (int num : LocationSum()) {
-			if (num!=range[1]) fullPosts=false;
+		if (range.equals(LocationSum())) {
+			if (hasDuplicates()==0) {
+				return true;
+			}
 		}
-		return hasDuplicates()==0 && fullPosts;
+		return hasDuplicates()==0 && Arrays.equals(range, LocationSum());
 	}
 
 	public void saveState(String file) {

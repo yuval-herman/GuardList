@@ -78,7 +78,7 @@ public class Population implements Serializable{//Comparator<Dna>,
 	}
 	
 	public void generatePopulation(int popSize, Schedule schedule) {
-		if (range==null) range = schedule.getRange();
+		if(range == null) range = schedule.getRange();
 		population = new ArrayList<Dna>(); //new population
 		Random r = new Random();
 		for(int i = 0; i < popSize; i++) { //deep copy profiles
@@ -99,7 +99,9 @@ public class Population implements Serializable{//Comparator<Dna>,
 
 			for (int j = 0 ; j<temp.length; j++) {
 				temp[j] = schedule.getProfiles()[j].duplicate();
-				temp[j].setPost(new int[] {r.nextInt(range[0]), r.nextInt(range[1])});
+				int location = r.nextInt(range.length);
+				int post = r.nextInt(range[location]);
+				temp[j].setPost(new int[] {location, post});
 			}
 
 			population.add(new Dna(0, new Schedule(temp, range)));
