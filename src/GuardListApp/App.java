@@ -1,14 +1,13 @@
 package GuardListApp;
 
-import dna.Dna;
 import dna.Population;
 import dna.Profile;
 import dna.Schedule;
 
 public class App {
 	
-	static int popSize = 400;
-	static double mutChance = 0.02;
+	static int popSize = 1000;
+	static double mutChance = 0.03;
 	
 	public static void main(String[] args) {
 		//generate population
@@ -36,11 +35,13 @@ public class App {
 //		Population population = Population.loadState("population.ser");
 		
 		int i=0;
+		int high = 0;
 		
-		while (population.evaluate()<1) {//<popSize/2.2) {//(i<10000) {
+		while /*(population.evaluate()<popSize/2.2) {*/(i<1000) {
 			System.out.println("generation->" + i);
 			//calculate fitness
 			population.sortByFitness();
+			high=population.getPopulation().get(199).getFitness()>high?population.getPopulation().get(199).getFitness():high;
 			System.out.println("highest fitness="+population.getPopulation().get(199).getFitness());
 			System.out.println("number of possible schedules=" + population.evaluate());
 			//crossover+new generation
@@ -48,8 +49,8 @@ public class App {
 			population.newGeneration();//population.crossover());
 			//mutation+hyper mutation
 			population.sortByFitness();
-			if (population.getPopulation().get((int) (popSize/2)).getFitness() == population.getPopulation().get(popSize-1).getFitness()) {
-				population.mutation(mutChance*2);
+			if (population.getPopulation().get((int) (popSize/1.7)).getFitness() == population.getPopulation().get(popSize-1).getFitness()) {
+				population.mutation(mutChance*3);
 			} else {
 				population.mutation(mutChance);
 			}
@@ -65,5 +66,7 @@ public class App {
 		population.printEvaluate();
 //		System.out.println(Arrays.deepToString(schedule));
 		population.printFitness();
+		System.out.println("highest ever: "+high);
+		System.out.println("generations: "+ i);
 	}
 }
