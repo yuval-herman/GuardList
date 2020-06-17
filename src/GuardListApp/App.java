@@ -1,5 +1,8 @@
 package GuardListApp;
 
+import java.util.Arrays;
+import java.util.Date;
+
 import dna.Population;
 import dna.Profile;
 import dna.Schedule;
@@ -26,6 +29,17 @@ public class App {
 
 		//consoleController.chooseOperation();
 		int[] range = new int[] {5, 6};
+		int timeScale = 12;
+		
+		Date beginDate = new Date();
+		
+		/*
+		 * for (Profile profile : profiles) { Date displayTime = new
+		 * Date((beginDate.getTime()+ 3600000*(timeScale/range[profile.getPost()[0]]*
+		 * profile.getPost()[1])));
+		 * System.out.println(Arrays.toString(profile.getPreference())+"	"
+		 * +displayTime); }
+		 */
 		
 		Population population = new Population(range);//.basePopulation; //instantiating like this is for testing
 		//purposes and makes for random profiles
@@ -37,7 +51,7 @@ public class App {
 		int i=0;
 		int high = 0;
 		
-		while /*(population.evaluate()<popSize/2.2) {*/(i<1000) {
+		while /*(population.evaluate()<popSize/2.2) {*/(i<100) {
 			System.out.println("generation->" + i);
 			//calculate fitness
 			population.sortByFitness();
@@ -65,6 +79,7 @@ public class App {
 		System.out.println("eval:");
 		population.printEvaluate();
 //		System.out.println(Arrays.deepToString(schedule));
+		population.prettyPrintDna(population.getPopulation().get(popSize-1), timeScale, beginDate);
 		population.printFitness();
 		System.out.println("highest ever: "+high);
 		System.out.println("generations: "+ i);

@@ -4,7 +4,7 @@ import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Random;
 
-public class Profile implements Serializable{
+public class Profile implements Serializable, Comparable<Profile>{
 
 	/**
 	 * 
@@ -83,9 +83,14 @@ public class Profile implements Serializable{
 
 	public void mutate(int[] range) {
 		Random r = new Random();
-		int location = r.nextInt(range.length);
+		if (r.nextFloat() > 0.5) {
+			int location = r.nextInt(range.length);
 		int post = r.nextInt(range[location]);
 		setPost(new int[] {location, post});
+		} else {
+			setPost(new int[] {(int) (getPost()[0]*(r.nextFloat()*(r.nextFloat()+1))), (int) (getPost()[1]*(r.nextFloat()*(r.nextFloat()+1)))});
+		}
+		
 	}
 
 	public Profile duplicate() {
@@ -119,5 +124,10 @@ public class Profile implements Serializable{
 		this.setPriority(priority);
 		this.setPreference(preference);
 		this.setPost(post);
+	}
+
+	@Override
+	public int compareTo(Profile arg0) {
+		return (post[1]-arg0.getPost()[1]);
 	}
 }

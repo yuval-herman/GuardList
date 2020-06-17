@@ -10,7 +10,7 @@ public class Dna implements Serializable, Comparable<Dna>{
 	 */
 	private static final long serialVersionUID = -4163955073606402973L;
 	int fitness;
-	Schedule genome;
+	private Schedule genome;
 	public int getFitness() {
 		return fitness;
 	}

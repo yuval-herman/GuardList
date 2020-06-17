@@ -8,6 +8,7 @@ import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.Random;
 
 
@@ -114,6 +115,25 @@ public class Population implements Serializable{//Comparator<Dna>,
 		}
 	}
 	
+	public void prettyPrintDna(Dna dna, int timeScale, Date beginDate) {
+		System.out.println("fitness: "+dna.getFitness());
+		System.out.println("--------------------------");
+		Profile[] tempProfiles = dna.getGenome().getProfiles();
+		Arrays.sort(tempProfiles);
+		for (Profile profile : tempProfiles) {
+			Date displayTimePost = new
+					Date((beginDate.getTime()+ 3600000*(timeScale/range[profile.getPost()[0]]*
+							profile.getPost()[1])));
+			Date displayTimePreference = new
+					Date((beginDate.getTime()+ 3600000*(timeScale/range[profile.getPreference()[0]]*
+							profile.getPreference()[1])));
+			System.out.print(profile.getName()+"    |    prefer: ");
+			System.out.print(profile.getPreference()[0]+"->"+displayTimePreference+"    |    post: ");
+			System.out.println(profile.getPost()[0]+"->"+displayTimePost);
+
+		}
+	}
+	
 	/*public Dna[] crossover() {
 		sortByFitness();
 		
@@ -151,7 +171,7 @@ public class Population implements Serializable{//Comparator<Dna>,
 	
 	public void mutation(double mutChance) {
 		for (int i = 0; i < population.size(); i++) {
-			population.get(i).genome.mutate(mutChance, range); 
+			population.get(i).getGenome().mutate(mutChance, range); 
 		}
 	}
 	

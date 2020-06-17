@@ -92,6 +92,27 @@ public class Schedule implements Serializable{
 		}
 		return tempRange;
 	}
+	
+	private boolean locationFull() {
+		boolean hasNext = false;
+		int[] tempRange = new int[range.length];
+		for (int i = 0; i < tempRange.length; i++) {
+			for (int j = 0; j < range[i]; j++) {
+				for (int j2 = 0; j2 < profiles.length; j2++) {
+					if (profiles[j2].getPost()[1]==j) {
+						hasNext=true;
+					}
+				}
+				if (hasNext) {
+					hasNext=false;
+				}
+				else {
+					return false;
+				}
+			}
+		}
+		return true;
+	}
 
 	public int calculateFitness() { //TODO needs to make sure there are enough people in all the locations
 		int tempFitness = 0;
@@ -111,12 +132,7 @@ public class Schedule implements Serializable{
 	}
 
 	public boolean evaluate() {
-		if (range.equals(LocationSum())) {
-			if (hasDuplicates()==0) {
-				return true;
-			}
-		}
-		return hasDuplicates()==0 && Arrays.equals(range, LocationSum());
+		return hasDuplicates()==0 && Arrays.equals(range, LocationSum()) && locationFull();
 	}
 
 	public void saveState(String file) {
