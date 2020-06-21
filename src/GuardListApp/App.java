@@ -1,8 +1,8 @@
 package GuardListApp;
 
-import java.util.Arrays;
 import java.util.Date;
 
+import dna.Dna;
 import dna.Population;
 import dna.Profile;
 import dna.Schedule;
@@ -27,39 +27,27 @@ public class App {
 				new Profile("11", 0.91f, new int[] {1,4}, null),
 		};
 
-		//consoleController.chooseOperation();
 		int[] range = new int[] {5, 6};
 		int timeScale = 12;
 		
 		Date beginDate = new Date();
 		
-		/*
-		 * for (Profile profile : profiles) { Date displayTime = new
-		 * Date((beginDate.getTime()+ 3600000*(timeScale/range[profile.getPost()[0]]*
-		 * profile.getPost()[1])));
-		 * System.out.println(Arrays.toString(profile.getPreference())+"	"
-		 * +displayTime); }
-		 */
-		
-		Population population = new Population(range);//.basePopulation; //instantiating like this is for testing
-		//purposes and makes for random profiles
-		population.generatePopulation(popSize, new Schedule(profiles, null));
+		Schedule.fromString(new Schedule(profiles, range).toString());
+
+		Population population = new Population(range);
+		population.generatePopulation(popSize, new Schedule(profiles, range));
 		population.getPopulation().get(0).getGenome().saveState("schedule.ser");
 		//main loop
-//		Population population = Population.loadState("population.ser");
 		
 		int i=0;
-		int high = 0;
 		
-		while /*(population.evaluate()<popSize/2.2) {*/(i<100) {
+		while /*(population.evaluate()<popSize/2.2) {*/(i<800) {
 			System.out.println("generation->" + i);
 			//calculate fitness
 			population.sortByFitness();
-			high=population.getPopulation().get(199).getFitness()>high?population.getPopulation().get(199).getFitness():high;
 			System.out.println("highest fitness="+population.getPopulation().get(199).getFitness());
-			System.out.println("number of possible schedules=" + population.evaluate());
+			System.out.println("number of possible schedules=" + population.evaluate().length);
 			//crossover+new generation
-			//Dna[] temp = population.crossover();
 			population.newGeneration();//population.crossover());
 			//mutation+hyper mutation
 			population.sortByFitness();
@@ -74,14 +62,13 @@ public class App {
 
 		population.calculateFitness();
 		
-//		System.out.println(population);
 		population.sortByFitness();
 		System.out.println("eval:");
 		population.printEvaluate();
-//		System.out.println(Arrays.deepToString(schedule));
-		population.prettyPrintDna(population.getPopulation().get(popSize-1), timeScale, beginDate);
+		Dna[] eval = population.evaluate();
+		population.prettyPrintDna(eval[eval.length-1], timeScale, beginDate);
+		System.out.println();
 		population.printFitness();
-		System.out.println("highest ever: "+high);
 		System.out.println("generations: "+ i);
 	}
 }

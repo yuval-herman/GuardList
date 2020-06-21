@@ -97,12 +97,12 @@ public class Profile implements Serializable, Comparable<Profile>{
 		return new Profile(name, priority, preference, post);
 	}
 
-	public int calculateFitness(int range[]) {
+	public double calculateFitness(int range[]) {
 		int stationDiff = Math.abs(preference[0]-post[0])+1;
 		int timeDiff = Math.abs(preference[1]-post[1])+1;
-		fitness = (100*priority/stationDiff)-(100/range.length-1);
+		fitness = (1000*priority/stationDiff)-(100/range.length-1);
 		fitness += (100*priority/timeDiff);//TODO see what we do with that -(100/range[1]);
-		return (int) (fitness*10);
+		return (fitness);
 	}
 
 	public double getFitness() {

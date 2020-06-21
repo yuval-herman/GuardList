@@ -116,7 +116,7 @@ public class Population implements Serializable{//Comparator<Dna>,
 	}
 	
 	public void prettyPrintDna(Dna dna, int timeScale, Date beginDate) {
-		System.out.println("fitness: "+dna.getFitness());
+		System.out.println("\n\nfitness: "+dna.getFitness());
 		System.out.println("--------------------------");
 		Profile[] tempProfiles = dna.getGenome().getProfiles();
 		Arrays.sort(tempProfiles);
@@ -128,10 +128,25 @@ public class Population implements Serializable{//Comparator<Dna>,
 					Date((beginDate.getTime()+ 3600000*(timeScale/range[profile.getPreference()[0]]*
 							profile.getPreference()[1])));
 			System.out.print(profile.getName()+"    |    prefer: ");
-			System.out.print(profile.getPreference()[0]+"->"+displayTimePreference+"    |    post: ");
-			System.out.println(profile.getPost()[0]+"->"+displayTimePost);
-
+			System.out.print(profile.getPreference()[0]+":"+profile.getPreference()[1]+"->"+displayTimePreference.getHours()+":"+displayTimePreference.getMinutes()+"    |    post: ");
+			System.out.println(profile.getPost()[0]+":"+profile.getPost()[1]+"->"+displayTimePost.getHours()+":"+displayTimePost.getMinutes());
 		}
+		int algPosts = 0;
+		int algLocs = 0;
+		int algPostLocs = 0;
+		for (int i = 0; i < tempProfiles.length; i++) {
+			if (tempProfiles[i].getPreference()[0] == tempProfiles[i].getPost()[0]) {
+				algPosts++;
+			}
+			if (tempProfiles[i].getPreference()[1] == tempProfiles[i].getPost()[1]) {
+				algLocs++;
+			}if (tempProfiles[i].getPreference()[0] == tempProfiles[i].getPost()[0] && tempProfiles[i].getPreference()[1] == tempProfiles[i].getPost()[1]) {
+				algPostLocs++;
+			}
+		}
+		System.out.println("\naligned posts: "+algPosts);
+		System.out.println("aligned locations: "+algLocs);
+		System.out.println("aligned posts and locations: "+algPostLocs);
 	}
 	
 	/*public Dna[] crossover() {
@@ -159,7 +174,6 @@ public class Population implements Serializable{//Comparator<Dna>,
 	
 	public void newGeneration() {
 		ArrayList<Dna> newpop = new ArrayList<Dna>();
-		Random r = new Random();
 		for(int i =0; i<population.size(); i++) {
 			Dna tempDna = population.get(randomNumberBias(population.size()-1, 0, 2))
 					.crossover(population.get(randomNumberBias(population.size()-1, 0, 2)));
@@ -176,14 +190,14 @@ public class Population implements Serializable{//Comparator<Dna>,
 	}
 	
 	public void printFitness() {
-		ArrayList<Integer> fitnesArr = new ArrayList<Integer>();
+		ArrayList<Double> fitnesArr = new ArrayList<Double>();
 		for (Dna dna : population) {
 			fitnesArr.add(dna.fitness);
 		}
 		fitnesArr.sort(null);
 		for(int i = 0; i < fitnesArr.size() / 2; i++)
 		{
-			int temp = fitnesArr.get(i);
+			double temp = fitnesArr.get(i);
 			fitnesArr.set(i, fitnesArr.get(fitnesArr.size() - i - 1));
 			fitnesArr.set(fitnesArr.size() - i - 1, temp);
 		}
@@ -204,14 +218,14 @@ public class Population implements Serializable{//Comparator<Dna>,
 		System.out.println(counter + " possible schedules");
 	}
 	
-	public int evaluate() {
-		int counter = 0;
+	public Dna[] evaluate() {
+		ArrayList<Dna> dnaArray = new ArrayList<Dna>();
 		for (Dna dna : population) {
 			if(dna.evaluate()) {
-				counter++;
+				dnaArray.add(dna);
 			}
 		}
-		return counter;
+		return dnaArray.toArray(new Dna[0]);
 	}
 	
 	public void devaluate() {

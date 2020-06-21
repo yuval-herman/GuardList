@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.Arrays;
-import java.util.Iterator;
 import java.util.Random;
 
 public class Schedule implements Serializable{
@@ -43,7 +42,12 @@ public class Schedule implements Serializable{
 
 	@Override
 	public String toString() {
-		return "Schedule [\nprofiles=" + Arrays.toString(profiles) + "\n]";
+		return "Schedule [\nprofiles=" + Arrays.toString(profiles) + ", range=" + Arrays.toString(range) + "\n]";
+	}
+	
+	public static Schedule fromString(String scheduleString) {
+		System.out.println(Arrays.toString(scheduleString.split("\\[|\\]")));
+		return new Schedule();
 	}
 
 	public Profile[] getProfiles() {
@@ -94,28 +98,25 @@ public class Schedule implements Serializable{
 	}
 	
 	private boolean locationFull() {
-		boolean hasNext = false;
-		int[] tempRange = new int[range.length];
-		for (int i = 0; i < tempRange.length; i++) {
+		for (int i = 0; i < range.length; i++) {
 			for (int j = 0; j < range[i]; j++) {
+				int fullLoc=0;
 				for (int j2 = 0; j2 < profiles.length; j2++) {
-					if (profiles[j2].getPost()[1]==j) {
-						hasNext=true;
+					if (fullLoc==range[i]) break;
+
+					if (profiles[j2].getPost()[0]==i && profiles[j2].getPost()[1]==fullLoc) {
+						fullLoc++;
+						j2=-1;
 					}
 				}
-				if (hasNext) {
-					hasNext=false;
-				}
-				else {
-					return false;
-				}
+				if (fullLoc!=range[i]) return false;
 			}
 		}
 		return true;
 	}
 
-	public int calculateFitness() { //TODO needs to make sure there are enough people in all the locations
-		int tempFitness = 0;
+	public double calculateFitness() { //TODO needs to make sure there are enough people in all the locations
+		double tempFitness = 0;
 		for (int i = 0; i < profiles.length; i++) {
 			tempFitness+=profiles[i].calculateFitness(range);
 		}

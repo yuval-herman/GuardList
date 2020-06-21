@@ -9,13 +9,13 @@ public class Dna implements Serializable, Comparable<Dna>{
 	 * 
 	 */
 	private static final long serialVersionUID = -4163955073606402973L;
-	int fitness;
+	double fitness;
 	private Schedule genome;
-	public int getFitness() {
+	public double getFitness() {
 		return fitness;
 	}
 
-	public void setFitness(int fitness) {
+	public void setFitness(double fitness) {
 		this.fitness = fitness;
 	}
 
@@ -37,7 +37,7 @@ public class Dna implements Serializable, Comparable<Dna>{
 
 	boolean eval=false;
 	
-	public Dna(int fitness, Schedule genome) {
+	public Dna(double fitness, Schedule genome) {
 		this.fitness = fitness;
 		this.genome = genome;
 	}
@@ -117,6 +117,6 @@ public class Dna implements Serializable, Comparable<Dna>{
 
 	@Override
 	public int compareTo(Dna o) {
-		return fitness-o.fitness;
+		return (int) ((fitness*100)-(o.fitness*100));
 	}
 }
