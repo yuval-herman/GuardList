@@ -4,6 +4,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Random;
 
@@ -46,8 +47,31 @@ public class Schedule implements Serializable{
 	}
 	
 	public static Schedule fromString(String scheduleString) {
-		System.out.println(Arrays.toString(scheduleString.split("\\[|\\]")));
-		return new Schedule();
+		int[] range = null;
+		ArrayList<Profile> profiles = new ArrayList<Profile>();
+		scheduleString=scheduleString.replaceAll("\\s","");
+		String[] data = scheduleString.split("\\[|\\]|,");
+		for(int i = 0; i < data.length; i++){
+			System.out.println(data[i]);
+			switch (data[i]) {
+			case "Profile":
+				profiles.add(new Profile(
+						data[i+1].split("=")[1],
+						Float.valueOf(data[i+2].split("=")[1]),
+						new int[]{Integer.valueOf(data[i+4]),Integer.valueOf(data[i+5])},
+						null
+						));
+				break;
+
+			case "range=":
+				range=new int[] {Integer.valueOf(data[i+1]), Integer.valueOf(data[i+2])};
+				break;
+
+			default:
+				break;
+			}
+		}
+		return new Schedule(profiles.toArray(new Profile[0]), range);
 	}
 
 	public Profile[] getProfiles() {
