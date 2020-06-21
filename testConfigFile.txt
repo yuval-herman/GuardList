@@ -1,0 +1,25 @@
+Schedule [
+profiles=[Profile [
+name=1, priority=0.1, preference=[1, 1]
+], Profile [
+name=2, priority=0.2, preference=[0, 4]
+], Profile [
+name=3, priority=0.3, preference=[0, 3]
+], Profile [
+name=4, priority=0.4, preference=[1, 4]
+], Profile [
+name=5, priority=0.5, preference=[1, 2]
+], Profile [
+name=6, priority=0.6, preference=[0, 4]
+], Profile [
+name=7, priority=0.7, preference=[1, 1]
+], Profile [
+name=8, priority=0.8, preference=[1, 0]
+], Profile [
+name=9, priority=0.9, preference=[1, 0]
+], Profile [
+name=10, priority=0.99, preference=[1, 4]
+], Profile [
+name=11, priority=0.91, preference=[1, 4]
+]], range=[5, 6]
+]

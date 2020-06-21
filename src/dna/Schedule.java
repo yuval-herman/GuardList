@@ -52,7 +52,6 @@ public class Schedule implements Serializable{
 		scheduleString=scheduleString.replaceAll("\\s","");
 		String[] data = scheduleString.split("\\[|\\]|,");
 		for(int i = 0; i < data.length; i++){
-			System.out.println(data[i]);
 			switch (data[i]) {
 			case "Profile":
 				profiles.add(new Profile(
