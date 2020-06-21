@@ -97,6 +97,7 @@ public class App {
 		Dna[] eval = population.evaluate();
 		population.prettyPrintDna(eval[eval.length-1], timeScale, beginDate);
 		System.out.println();
+		population.saveSchedule("bestSchedule.txt", eval[eval.length-1]);
 		System.out.println("generations: "+ i);
 	}
 }

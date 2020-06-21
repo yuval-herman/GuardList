@@ -1,7 +1,9 @@
 package dna;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -274,5 +276,28 @@ public class Population implements Serializable{//Comparator<Dna>,
 	@Override
 	public String toString() {
 		return "Population [\npopulation=" + population + "\n]";
+	}
+
+	public void saveSchedule(String filename, Dna eval) {
+		try {
+		      File myObj = new File(filename);
+		      if (myObj.createNewFile()) {
+		        System.out.println("File created: " + myObj.getName());
+		      } else {
+		        System.out.println(filename+" file already exists. Overwriting...");
+		      }
+		    } catch (IOException e) {
+		      System.out.println("An error occurred.");
+		      e.printStackTrace();
+		    }
+		try {
+		      FileWriter myWriter = new FileWriter(filename);
+		      myWriter.write(eval.toString());
+		      myWriter.close();
+		      System.out.println("Successfully wrote to the file.");
+		    } catch (IOException e) {
+		      System.out.println("An error occurred.");
+		      e.printStackTrace();
+		    }
 	}
 }
