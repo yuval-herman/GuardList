@@ -3,8 +3,13 @@ package GuardListApp;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 
 import org.json.JSONObject;
+
+import dna.Dna;
+import dna.Schedule;
 
 public class TelegramController {
 	//https://api.telegram.org/bot<token>/METHOD_NAME
@@ -35,11 +40,13 @@ public class TelegramController {
 		JSONObject obj = (JSONObject) ret.getJSONArray("result").get(ret.getJSONArray("result").length()-1);
 		lastupdateId=obj.getInt("update_id");
 	}
-	
+
 	public static JSONObject getUpdates() throws IOException {
-		return httpRequstMethod(
-				"getUpdates", "timeout=60",
+		JSONObject ret = httpRequstMethod(
+				"getUpdates", "timeout=120",
 				"offset=" + (lastupdateId!=0 ? String.valueOf(lastupdateId+1) : "0"));
+		if (ret.getJSONArray("result").length()!=0) idIncrement(ret);
+		return ret;
 	}
 
 	public static JSONObject sendMessage(int chat_id, String text) throws IOException {
@@ -57,17 +64,54 @@ public class TelegramController {
 			if (ret.getJSONArray("result").length()==0) {
 				continue;
 			}
-			
-			idIncrement(ret);
+
 			String msgText = null;
 			for (int i = 0; i < ret.getJSONArray("result").length(); i++) {
 				JSONObject obj = (JSONObject) ret.getJSONArray("result").get(i);
 				JSONObject message = (JSONObject) obj.get("message");
 				msgText=message.getString("text");
 			}
-			
-			sendMessage(((JSONObject) ((JSONObject) ((JSONObject) ret.getJSONArray("result").get(ret.getJSONArray("result").length()-1)).get("message")).get("from")).getInt("id"), "got -> "+((JSONObject) ((JSONObject) ret.getJSONArray("result").get(ret.getJSONArray("result").length()-1)).get("message")).getString("text"));
+
+			//sendMessage(((JSONObject) ((JSONObject) ((JSONObject) ret.getJSONArray("result").get(ret.getJSONArray("result").length()-1)).get("message")).get("from")).getInt("id"), "got -> "+((JSONObject) ((JSONObject) ret.getJSONArray("result").get(ret.getJSONArray("result").length()-1)).get("message")).getString("text"));
 			System.out.println(msgText);
+
+			if (msgText.equals("test")) {
+				sendMessage(((JSONObject) ((JSONObject) ((JSONObject) ret.getJSONArray("result").get(ret.getJSONArray("result").length()-1)).get("message")).get("from")).getInt("id"),
+						URLEncoder.encode("send your profiles in the following format:\nname,priority,preferred location:preferred time.", StandardCharsets.UTF_8));
+				ret = getUpdates();
+				ScheduleGenerator scheduleGenerator = new ScheduleGenerator();
+				String datamsgText = null;
+				for (int i = 0; i < ret.getJSONArray("result").length(); i++) {
+					JSONObject obj = (JSONObject) ret.getJSONArray("result").get(i);
+					JSONObject message = (JSONObject) obj.get("message");
+					datamsgText=message.getString("text");
+				}
+				sendMessage(((JSONObject) ((JSONObject) ((JSONObject) ret.getJSONArray("result").get(ret.getJSONArray("result").length()-1)).get("message")).get("from")).getInt("id"),
+						URLEncoder.encode("send the number of people for each station like the following example:\n4:6:2\nthe above stands for 3 stations with 4 people manning the 1st station 6 the 2th and 2 the 3rd.", StandardCharsets.UTF_8));
+				ret = getUpdates();
+				for (int i = 0; i < ret.getJSONArray("result").length(); i++) {
+					JSONObject obj = (JSONObject) ret.getJSONArray("result").get(i);
+					JSONObject message = (JSONObject) obj.get("message");
+					msgText=message.getString("text");
+				}
+				int[] range = new int[msgText.split(":").length];
+				for (int i = 0; i < range.length; i++) {
+					range[i] = Integer.valueOf(msgText.split(":")[i]);
+				}
+				
+				Schedule schedule = scheduleGenerator.ScheduleFromString(datamsgText, range);
+				
+				sendMessage(((JSONObject) ((JSONObject) ((JSONObject) ret.getJSONArray("result").get(ret.getJSONArray("result").length()-1)).get("message")).get("from")).getInt("id"),
+						URLEncoder.encode(schedule.toString(), StandardCharsets.UTF_8));
+				
+				sendMessage(((JSONObject) ((JSONObject) ((JSONObject) ret.getJSONArray("result").get(ret.getJSONArray("result").length()-1)).get("message")).get("from")).getInt("id"),
+						URLEncoder.encode("calculating...", StandardCharsets.UTF_8));
+				
+				Dna bestDna = scheduleGenerator.calculateBestSchedule(schedule);
+				
+				sendMessage(((JSONObject) ((JSONObject) ((JSONObject) ret.getJSONArray("result").get(ret.getJSONArray("result").length()-1)).get("message")).get("from")).getInt("id"),
+						URLEncoder.encode(bestDna.toString(), StandardCharsets.UTF_8));
+			}
 		}
 	}
 }
