@@ -16,7 +16,7 @@ public class Profile implements Serializable, Comparable<Profile>{
 	private int[] preference; //the preference for a post TODO make a 2D array to keep more then one preference
 	private int[] post; //first cell for what post, second for time
 	private double fitness;
-	
+
 	public Profile(String name, float priority, int[] preference, int[] post) {
 		number++;
 		this.setName(name);
@@ -24,7 +24,11 @@ public class Profile implements Serializable, Comparable<Profile>{
 		this.setPreference(preference);
 		this.setPost(post);
 	}
-	
+
+	public Profile(String name, Float priority, int[] preference) {
+		this(name, priority, preference, null);
+	}
+
 	@Override
 	public String toString() {
 		return "Profile [\nname=" + name + ", priority=" + priority + ", preference=" + Arrays.toString(preference)
@@ -85,12 +89,12 @@ public class Profile implements Serializable, Comparable<Profile>{
 		Random r = new Random();
 		if (r.nextFloat() > 0.5) {
 			int location = r.nextInt(range.length);
-		int post = r.nextInt(range[location]);
-		setPost(new int[] {location, post});
+			int post = r.nextInt(range[location]);
+			setPost(new int[] {location, post});
 		} else {
 			setPost(new int[] {(int) (getPost()[0]*(r.nextFloat()*(r.nextFloat()+1))), (int) (getPost()[1]*(r.nextFloat()*(r.nextFloat()+1)))});
 		}
-		
+
 	}
 
 	public Profile duplicate() {
