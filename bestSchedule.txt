@@ -1,0 +1,27 @@
+Dna [
+fitness=268.0984853831205, genome=Schedule [
+profiles=[Profile [
+name=4, priority=0.4, preference=[1, 4], post=[0, 0], fitness=59.0
+], Profile [
+name=9, priority=0.9, preference=[1, 0], post=[1, 0], fitness=491.0
+], Profile [
+name=1, priority=0.1, preference=[1, 1], post=[0, 1], fitness=-14.0
+], Profile [
+name=11, priority=0.91, preference=[1, 4], post=[1, 1], fitness=428.75
+], Profile [
+name=2, priority=0.2, preference=[0, 4], post=[0, 2], fitness=57.66666650772095
+], Profile [
+name=5, priority=0.5, preference=[1, 2], post=[1, 2], fitness=251.0
+], Profile [
+name=3, priority=0.3, preference=[0, 3], post=[0, 3], fitness=131.00000190734863
+], Profile [
+name=7, priority=0.7, preference=[1, 1], post=[1, 3], fitness=324.3333339691162
+], Profile [
+name=6, priority=0.6, preference=[0, 4], post=[0, 4], fitness=311.00000381469727
+], Profile [
+name=10, priority=0.99, preference=[1, 4], post=[1, 4], fitness=545.0
+], Profile [
+name=8, priority=0.8, preference=[1, 0], post=[1, 5], fitness=364.3333330154419
+]], range=[5, 6]
+]
+]

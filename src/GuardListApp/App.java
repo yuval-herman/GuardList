@@ -1,19 +1,12 @@
 package GuardListApp;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Date;
-import java.util.Scanner;
-
 import dna.Dna;
 import dna.Population;
-import dna.Profile;
 import dna.Schedule;
 
 public class App {
