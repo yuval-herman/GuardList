@@ -31,15 +31,21 @@ public class TelegramController {
 		return new JSONObject(data);
 	}
 
+	public static void idIncrement(JSONObject ret) {
+		JSONObject obj = (JSONObject) ret.getJSONArray("result").get(ret.getJSONArray("result").length()-1);
+		lastupdateId=obj.getInt("update_id");
+	}
+	
 	public static JSONObject getUpdates() throws IOException {
 		return httpRequstMethod(
 				"getUpdates", "timeout=60",
 				"offset=" + (lastupdateId!=0 ? String.valueOf(lastupdateId+1) : "0"));
 	}
-	
-	public static void idIncrement(JSONObject ret) {
-		JSONObject obj = (JSONObject) ret.getJSONArray("result").get(ret.getJSONArray("result").length()-1);
-		lastupdateId=obj.getInt("update_id");
+
+	public static JSONObject sendMessage(int chat_id, String text) throws IOException {
+		return httpRequstMethod(
+				"sendMessage", "chat_id="+chat_id,
+				"text="+text);
 	}
 
 	public static void main(String[] args) throws IOException {
@@ -59,6 +65,8 @@ public class TelegramController {
 				JSONObject message = (JSONObject) obj.get("message");
 				msgText=message.getString("text");
 			}
+			
+			sendMessage(((JSONObject) ((JSONObject) ((JSONObject) ret.getJSONArray("result").get(ret.getJSONArray("result").length()-1)).get("message")).get("from")).getInt("id"), "got -> "+((JSONObject) ((JSONObject) ret.getJSONArray("result").get(ret.getJSONArray("result").length()-1)).get("message")).getString("text"));
 			System.out.println(msgText);
 		}
 	}
