@@ -31,8 +31,8 @@ public class Profile implements Serializable, Comparable<Profile>{
 
 	@Override
 	public String toString() {
-		return "Profile [\nname=" + name + ", priority=" + priority + ", preference=" + Arrays.toString(preference)
-		+ ", post=" + Arrays.toString(post) + ", fitness=" + fitness + "\n]";
+		return name + ", " + priority + ", " + Arrays.toString(preference)
+		+ ", " + Arrays.toString(post) + "\n";
 	}
 
 	public static int getNumber() {

@@ -11,17 +11,23 @@ public class ScheduleGenerator {
 		return new Schedule(profiles, range);
 	}
 
-	public Schedule ScheduleFromString(String str, int[] range) {
+	public Schedule ScheduleFromString(String str) {
 		//name,priority, preference
 		String[] dataLines = str.split("\\r?\\n");
-		Profile[] profiles = new Profile[dataLines.length];
-		for (int i = 0; i < dataLines.length; i++) {
+		Profile[] profiles = new Profile[dataLines.length-1];
+		for (int i = 0; i < dataLines.length-1; i++) {
 			String[] data = dataLines[i].split(",");
 			String[] preference = data[2].split(":");
 
 			profiles[i] = new Profile(data[0],
 					Float.valueOf(data[1]),
 					new int[]{Integer.valueOf(preference[0]),Integer.valueOf(preference[1])});
+		}
+		
+		String[] rangeStr = dataLines[dataLines.length-1].split(":");
+		int[] range = new int[rangeStr.length];
+		for (int i = 0; i < rangeStr.length; i++) {
+			range[i]=Integer.valueOf(rangeStr[i]);
 		}
 		return new Schedule(profiles, range);
 	}
@@ -50,7 +56,7 @@ public class ScheduleGenerator {
 				population.mutation(mutChance);
 			}
 			i++;
-		} while (i<1000);
+		} while (i<3000);
 
 		population.calculateFitness();
 
