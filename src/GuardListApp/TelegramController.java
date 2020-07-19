@@ -9,6 +9,7 @@ import java.nio.charset.StandardCharsets;
 import org.json.JSONObject;
 
 import dna.Dna;
+import dna.Profile;
 import dna.Schedule;
 
 public class TelegramController {
@@ -17,9 +18,16 @@ public class TelegramController {
 	private static String requestUrl = "https://api.telegram.org/bot"+token+"/";
 	private static int lastupdateId=0;
 	public static int lastUserId=0;
-	public static JSONObject ret;
+	public static JSONObject ret; //last retrieved message from the server
 
-	public static JSONObject httpRequstMethod(String method, String... args) throws IOException{
+	/**
+	 * sends https request to telegram server
+	 * @param method telegram api method string
+	 * @param args arguments to telegram api method
+	 * @return return json formatted object from telegram server
+	 * @throws IOException
+	 */
+	public static JSONObject httpsRequstMethod(String method, String... args) throws IOException{
 		String requetString = requestUrl+method;
 		if (args.length>0) {
 			requetString+="?"+args[0];
@@ -38,50 +46,156 @@ public class TelegramController {
 		return new JSONObject(data);
 	}
 
+	/**
+	 * increments the last id of the received message
+	 * @param ret the last received message from the server
+	 */
 	public static void idIncrement(JSONObject ret) {
 		JSONObject obj = (JSONObject) ret.getJSONArray("result").get(ret.getJSONArray("result").length()-1);
 		lastupdateId=obj.getInt("update_id");
 	}
 
-	public static JSONObject getUpdates(int timeOut) throws IOException {
+	/**
+	 * gets all unread messages from the server via long pulling
+	 * @param timeOut time to wait from new messages to arrive, minus values to wait indefinitely
+	 * @return return json formatted answer from server, null if timed out
+	 * @throws IOException
+	 */
+	public static void getUpdates(int timeOut) throws IOException {
 		do {
-			JSONObject ret = httpRequstMethod(
+			JSONObject ret = httpsRequstMethod(
 					"getUpdates", "timeout="+(timeOut<0?120:timeOut),
 					"offset=" + (lastupdateId!=0 ? String.valueOf(lastupdateId+1) : "0"));
 			if (ret.getJSONArray("result").length()!=0) {
 				idIncrement(ret);
-				return ret;
+				TelegramController.ret = ret;
+				return;
 			}
 		} while (timeOut<0);
-		return null;
+		return;
 
 	}
 
+	/**
+	 * send a message to a chat by id
+	 * @param chat_id id to send the message to
+	 * @param text text to send in the message body
+	 * @param args arguments to pass for the sendMessage telegram method
+	 * @return return json formatted answer from server
+	 * @throws IOException
+	 */
 	public static JSONObject sendMessage(int chat_id, String text, String... args) throws IOException {
 		String[] args2 = new String[args.length + 2];
 		System.arraycopy(args, 0, args2, 0, args.length);
 		args2[args2.length-2] = "chat_id="+chat_id;
 		args2[args2.length-1] = "text="+URLEncoder.encode(text, StandardCharsets.UTF_8);
-		return httpRequstMethod("sendMessage", args2);
+		return httpsRequstMethod("sendMessage", args2);
 	}
 
+	/**
+	 * calculates best schedule from a single text message
+	 * @param msgObj message object received from server
+	 * @return return Dna object of best schedule
+	 */
 	public static Dna calcTempSchedule(JSONObject msgObj) {
 		ScheduleGenerator scheduleGenerator = new ScheduleGenerator();
 		String msgText=msgObj.getString("text");
 		return scheduleGenerator.calculateBestSchedule(scheduleGenerator.ScheduleFromString(msgText));
 	}
+	
+	/**
+	 * gets the text from the last message received from the server
+	 * @param messageNum number of message out of returned array from server
+	 * @return text from message object
+	 */
+	private static String getMsg(int messageNum) {
+		return ((JSONObject) ((JSONObject) ret.getJSONArray("result")
+				.get(messageNum)).
+				get("message")).getString("text");
+	}
+
+	/**
+	 * interactively makes On-The-Fly schedule with a chat user
+	 * @throws IOException
+	 */
+	private static void makeSchedule() throws IOException {
+		sendMessage(lastUserId,
+				"how many people are there?");
+
+		getUpdates(-1);
+		
+		int numOfPips = Integer.valueOf(getMsg(0));
+		sendMessage(lastUserId,
+				numOfPips+" people it is then.");
+		
+		sendMessage(lastUserId,
+				"now tell me how many stations have you got.🏠");
+		
+		getUpdates(-1);
+		int[] range = new int[Integer.valueOf(getMsg(0))];
+		
+		for (int i = 0; i < range.length; i++) {
+			sendMessage(lastUserId,
+					"how many people are assigned to the "+i+" station?");
+			
+			getUpdates(-1);
+			range[i] = Integer.valueOf(getMsg(0));
+		}
+		
+		sendMessage(lastUserId,
+				"okay great!😃 now let's fill in the details.");
+		
+		String name = null;
+		float priority = 0;
+		int[] preference = new int[2];
+		Profile[] profiles = new Profile[numOfPips];
+		
+		for (int i = 0; i < profiles.length; i++) {
+			sendMessage(lastUserId,
+					"give me a name for the "+i+" person.");
+			getUpdates(-1);
+			name=getMsg(0);
+			
+			sendMessage(lastUserId,
+					"write the "+i+" person priority.");
+			getUpdates(-1);
+			priority=Float.valueOf(getMsg(0));
+			
+			sendMessage(lastUserId,
+					"write the "+i+" person preferred station.");
+			getUpdates(-1);
+			preference[0]=Integer.valueOf(getMsg(0));
+			
+			sendMessage(lastUserId,
+					"write the "+i+" person preferred time.");
+			getUpdates(-1);
+			preference[1]=Integer.valueOf(getMsg(0));
+			
+			profiles[i] = new Profile(name, priority, preference);
+			sendMessage(lastUserId,
+					"the "+i+" person looks like this: "+profiles[i].toString()+".");
+			if (i+1!=profiles.length) sendMessage(lastUserId,
+					"now let's go for the next!😁");
+		}
+		sendMessage(lastUserId,
+				"Done!, give me a second and i will calculate the best schedule🤓");
+		ScheduleGenerator scheduleGenerator = new ScheduleGenerator();
+		Dna bestDna = scheduleGenerator.calculateBestSchedule(new Schedule(profiles, range));
+		sendMessage(lastUserId,
+				URLEncoder.encode(bestDna.getGenome().toString(), StandardCharsets.UTF_8));
+
+	}
 
 	public static void main(String[] args) throws IOException {
 		System.out.println("begin");
 		while (true) {
-			ret = getUpdates(-1);
+			getUpdates(-1);
 
 			lastUserId = ((JSONObject) ((JSONObject) ((JSONObject) ret.getJSONArray("result")
 					.get(ret.getJSONArray("result").length()-1)).get("message")).get("from")).getInt("id");
 
-			String msgText = (String) ((JSONObject) ((JSONObject) ret.getJSONArray("result")
-					.get(ret.getJSONArray("result").length()-1)).get("message")).get("text");
-
+			String msgText = getMsg(0);
+					
 			sendMessage(lastUserId,
 					"got -> "+msgText);
 			System.out.println(ret);
@@ -92,7 +206,8 @@ public class TelegramController {
 					makeSchedule();
 				} catch (Exception e) {
 					sendMessage(lastUserId,
-							"wrong fomatting, try again");
+							"wrong fomatting, try again",
+							"reply_markup={\"remove_keyboard\":true}");
 				}
 				break;
 
@@ -102,72 +217,10 @@ public class TelegramController {
 								+ "name, priority, station number:time.\n"
 								+ "example: nadav,0.213,0:1.\n"
 								+ "in the last line add the number of people to save in each station like so:\n"
-								+ "2:5:1(indicating 2 for the first station five for the second and so on).");
+								+ "2:5:1(indicating 2 for the first station five for the second and so on).",
+								"reply_markup={\"remove_keyboard\":true}");
 				break;
 			}
 		}
-	}
-
-	private static String getMsg() {
-		return ((JSONObject) ((JSONObject) ret.getJSONArray("result")
-				.get(ret.getJSONArray("result").length()-1)).
-				get("message")).getString("text");
-	}
-
-	private static void makeSchedule() throws IOException {
-		sendMessage(lastUserId,
-				"now write the configuration message.",
-				"reply_markup="+
-						URLEncoder.encode("{\"keyboard\":[[{\"text\":\"name\"},"
-								+ "{\"text\":\"priority\"},"
-								+ "{\"text\":\"preference\"}]]}", StandardCharsets.UTF_8));
-
-		getUpdates(-1);
-		System.out.println(ret);
-		String name = null;
-		String priority = null;
-		String preference = null;
-		switch (getMsg()) {
-		case "name":
-			System.out.println(getMsg());
-			sendMessage(lastUserId,
-					"write the name",
-					"reply_markup="+
-							URLEncoder.encode("{\"keyboard\":[["+(name!=null?"{\"text\":\"name\"},":null)
-									+ (priority!=null?"{\"text\":\"priority\"},":null)
-									+ (preference!=null?"{\"text\":\"preference\"}]]}":null), StandardCharsets.UTF_8));
-			getUpdates(-1);
-			name = getMsg();
-			break;
-		case "priority":
-			sendMessage(lastUserId,
-					"write the priority",
-					"reply_markup="+
-							URLEncoder.encode("{\"keyboard\":[["+(name!=null?"{\"text\":\"name\"},":null)
-									+ (priority!=null?"{\"text\":\"priority\"},":null)
-									+ (preference!=null?"{\"text\":\"preference\"}]]}":null), StandardCharsets.UTF_8));
-			getUpdates(-1);
-			priority = getMsg();
-			break;
-		case "preference":
-			sendMessage(lastUserId,
-					"write the preference",
-					"reply_markup="+
-							URLEncoder.encode("{\"keyboard\":[["+(name!=null?"{\"text\":\"name\"},":null)
-									+ (priority!=null?"{\"text\":\"priority\"},":null)
-									+ (preference!=null?"{\"text\":\"preference\"}]]}":null), StandardCharsets.UTF_8));
-			getUpdates(-1);
-			preference = getMsg();
-			break;
-
-		default:
-			break;
-		}
-		sendMessage(lastUserId, "I got " + name+","+priority+","+preference,
-				"reply_markup={\"remove_keyboard\":true}");
-		sendMessage(lastUserId,
-				calcTempSchedule((JSONObject) ((JSONObject) ret.getJSONArray("result")
-						.get(ret.getJSONArray("result").length()-1)).
-						get("message")).toString());
 	}
 }
