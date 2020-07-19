@@ -34,6 +34,10 @@ public class Profile implements Serializable, Comparable<Profile>{
 		return name + ", " + priority + ", " + Arrays.toString(preference)
 		+ ", " + Arrays.toString(post) + "\n";
 	}
+	
+	public String hebToString() {
+		return "שם: " + name + ", עמדה ושעה: " + Arrays.toString(post) + "\n";
+	}
 
 	public static int getNumber() {
 		return number;

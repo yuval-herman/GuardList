@@ -64,7 +64,7 @@ public class TelegramController {
 	public static void getUpdates(int timeOut) throws IOException {
 		do {
 			JSONObject ret = httpsRequstMethod(
-					"getUpdates", "timeout="+(timeOut<0?120:timeOut),
+					"getUpdates", "timeout="+(timeOut<0?(60*60):timeOut),
 					"offset=" + (lastupdateId!=0 ? String.valueOf(lastupdateId+1) : "0"));
 			if (ret.getJSONArray("result").length()!=0) {
 				idIncrement(ret);
@@ -120,30 +120,33 @@ public class TelegramController {
 	 */
 	private static void makeSchedule() throws IOException {
 		sendMessage(lastUserId,
-				"how many people are there?");
+				"כמה אנשים נמצאים?",
+				"reply_markup={\"remove_keyboard\":true}");
 
 		getUpdates(-1);
 		
 		int numOfPips = Integer.valueOf(getMsg(0));
-		sendMessage(lastUserId,
-				numOfPips+" people it is then.");
 		
 		sendMessage(lastUserId,
-				"now tell me how many stations have you got.🏠");
+				"וכמה עמדות יש?🏠");
 		
 		getUpdates(-1);
 		int[] range = new int[Integer.valueOf(getMsg(0))];
 		
-		for (int i = 0; i < range.length; i++) {
-			sendMessage(lastUserId,
-					"how many people are assigned to the "+i+" station?");
-			
-			getUpdates(-1);
-			range[i] = Integer.valueOf(getMsg(0));
+		if (range.length!=1) {
+			for (int i = 0; i < range.length; i++) {
+				sendMessage(lastUserId,
+						"כמה אנשים צריכים לאייש את עמדה מספר "+(i+1)+"?");
+
+				getUpdates(-1);
+				range[i] = Integer.valueOf(getMsg(0));
+			}
+		} else {
+			range[0] = numOfPips;
 		}
 		
 		sendMessage(lastUserId,
-				"okay great!😃 now let's fill in the details.");
+				"אוקי מצויין!😃 עכשיו נמלא את הפרטים.");
 		
 		String name = null;
 		float priority = 0;
@@ -152,37 +155,37 @@ public class TelegramController {
 		
 		for (int i = 0; i < profiles.length; i++) {
 			sendMessage(lastUserId,
-					"give me a name for the "+i+" person.");
+					"מה השם של הבן אדם ה-"+(i+1)+"?");
 			getUpdates(-1);
 			name=getMsg(0);
 			
 			sendMessage(lastUserId,
-					"write the "+i+" person priority.");
+					"כמה העדפה יש לאדם ה-"+(i+1)+"?");
 			getUpdates(-1);
 			priority=Float.valueOf(getMsg(0));
 			
 			sendMessage(lastUserId,
-					"write the "+i+" person preferred station.");
+					"באיזו עמדה האדם ה-"+(i+1)+"מעדיף לשמור?");
 			getUpdates(-1);
 			preference[0]=Integer.valueOf(getMsg(0));
 			
 			sendMessage(lastUserId,
-					"write the "+i+" person preferred time.");
+					"באיזו שעה האדם ה-"+(i+1)+"מעדיף לשמור?");
 			getUpdates(-1);
 			preference[1]=Integer.valueOf(getMsg(0));
 			
 			profiles[i] = new Profile(name, priority, preference);
 			sendMessage(lastUserId,
-					"the "+i+" person looks like this: "+profiles[i].toString()+".");
+					"הנה הפרופיל לאדם הראשון\n"+profiles[i].toString()+".");
 			if (i+1!=profiles.length) sendMessage(lastUserId,
-					"now let's go for the next!😁");
+					"עכשיו בוא נמשיך להבא!😁");
 		}
 		sendMessage(lastUserId,
-				"Done!, give me a second and i will calculate the best schedule🤓");
+				"זהו!, תן לי כמה רגעים ואני יחשב את הרשימה האופטימלית🤓");
 		ScheduleGenerator scheduleGenerator = new ScheduleGenerator();
 		Dna bestDna = scheduleGenerator.calculateBestSchedule(new Schedule(profiles, range));
 		sendMessage(lastUserId,
-				URLEncoder.encode(bestDna.getGenome().toString(), StandardCharsets.UTF_8));
+				bestDna.getGenome().hebtoString());
 
 	}
 
@@ -201,24 +204,20 @@ public class TelegramController {
 			System.out.println(ret);
 
 			switch (msgText.toLowerCase()) {
-			case "test":
+			case "רשימה חד פעמית":
 				try {
 					makeSchedule();
 				} catch (Exception e) {
 					sendMessage(lastUserId,
-							"wrong fomatting, try again",
+							"קרתה תקלה, נסה שוב🤪.",
 							"reply_markup={\"remove_keyboard\":true}");
 				}
 				break;
 
 			default:
 				sendMessage(lastUserId,
-						"testList - calculate best sceduale for a given list in the following format:\n"
-								+ "name, priority, station number:time.\n"
-								+ "example: nadav,0.213,0:1.\n"
-								+ "in the last line add the number of people to save in each station like so:\n"
-								+ "2:5:1(indicating 2 for the first station five for the second and so on).",
-								"reply_markup={\"remove_keyboard\":true}");
+						"נסה להשתמש במקלדת המותאמת אישית כדי לשלוח פקודה שאני יבין👇",
+						"reply_markup={\"keyboard\":[[{\"text\":\""+URLEncoder.encode("רשימה חד פעמית", StandardCharsets.UTF_8)+"\"}]]}");
 				break;
 			}
 		}

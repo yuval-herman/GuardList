@@ -43,7 +43,7 @@ public class Schedule implements Serializable{
 
 	@Override
 	public String toString() {
-		return "Schedule [\nprofiles=" + Arrays.toString(profiles) + ", range=" + Arrays.toString(range) + "\n]";
+		return "Schedule [\nprofiles=\n" + Arrays.toString(profiles) + ", range=" + Arrays.toString(range) + "\n]";
 	}
 	
 	public static Schedule fromString(String scheduleString) {
@@ -183,5 +183,13 @@ public class Schedule implements Serializable{
 	public void editProfile(Profile newpProfile, int profileNumber) {
 		// TODO Auto-generated method stub
 		
+	}
+
+	public String hebtoString() {
+		String retString = "שבצ\"ק:\n";
+		for (int i = 0; i < profiles.length; i++) {
+			retString += profiles[i].hebToString();
+		}
+		return retString;
 	}
 }
