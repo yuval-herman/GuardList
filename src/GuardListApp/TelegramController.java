@@ -19,6 +19,8 @@ public class TelegramController {
 	private static int lastupdateId=0;
 	public static int lastUserId=0;
 	public static JSONObject ret; //last retrieved message from the server
+	public static Profile[] savedProfiles=null;
+	private static int[] savedRange;
 
 	/**
 	 * sends https request to telegram server
@@ -50,7 +52,7 @@ public class TelegramController {
 	 * increments the last id of the received message
 	 * @param ret the last received message from the server
 	 */
-	public static void idIncrement(JSONObject ret) {
+	public static void idIncrement() {
 		JSONObject obj = (JSONObject) ret.getJSONArray("result").get(ret.getJSONArray("result").length()-1);
 		lastupdateId=obj.getInt("update_id");
 	}
@@ -67,8 +69,8 @@ public class TelegramController {
 					"getUpdates", "timeout="+(timeOut<0?(60*60):timeOut),
 					"offset=" + (lastupdateId!=0 ? String.valueOf(lastupdateId+1) : "0"));
 			if (ret.getJSONArray("result").length()!=0) {
-				idIncrement(ret);
 				TelegramController.ret = ret;
+				idIncrement();
 				return;
 			}
 		} while (timeOut<0);
@@ -102,7 +104,7 @@ public class TelegramController {
 		String msgText=msgObj.getString("text");
 		return scheduleGenerator.calculateBestSchedule(scheduleGenerator.ScheduleFromString(msgText));
 	}
-	
+
 	/**
 	 * gets the text from the last message received from the server
 	 * @param messageNum number of message out of returned array from server
@@ -119,61 +121,72 @@ public class TelegramController {
 	 * @throws IOException
 	 */
 	private static void makeSchedule() throws IOException {
+		saveProfiles();
+		sendMessage(lastUserId,
+				"זהו!, תן לי כמה רגעים ואני יחשב את הרשימה האופטימלית🤓");
+		ScheduleGenerator scheduleGenerator = new ScheduleGenerator();
+		Dna bestDna = scheduleGenerator.calculateBestSchedule(new Schedule(savedProfiles, savedRange));
+		sendMessage(lastUserId,
+				bestDna.getGenome().hebtoString());
+
+	}
+
+	private static void saveProfiles() throws IOException {
 		sendMessage(lastUserId,
 				"כמה אנשים נמצאים?",
 				"reply_markup={\"remove_keyboard\":true}");
 
 		getUpdates(-1);
-		
+
 		int numOfPips = Integer.valueOf(getMsg(0));
-		
+
 		sendMessage(lastUserId,
 				"וכמה עמדות יש?🏠");
-		
+
 		getUpdates(-1);
-		int[] range = new int[Integer.valueOf(getMsg(0))];
-		
-		if (range.length!=1) {
-			for (int i = 0; i < range.length; i++) {
+		savedRange = new int[Integer.valueOf(getMsg(0))];
+
+		if (savedRange.length!=1) {
+			for (int i = 0; i < savedRange.length; i++) {
 				sendMessage(lastUserId,
 						"כמה אנשים צריכים לאייש את עמדה מספר "+(i+1)+"?");
 
 				getUpdates(-1);
-				range[i] = Integer.valueOf(getMsg(0));
+				savedRange[i] = Integer.valueOf(getMsg(0));
 			}
 		} else {
-			range[0] = numOfPips;
+			savedRange[0] = numOfPips;
 		}
-		
+
 		sendMessage(lastUserId,
 				"אוקי מצויין!😃 עכשיו נמלא את הפרטים.");
-		
+
 		String name = null;
 		float priority = 0;
 		int[] preference = new int[2];
 		Profile[] profiles = new Profile[numOfPips];
-		
+
 		for (int i = 0; i < profiles.length; i++) {
 			sendMessage(lastUserId,
 					"מה השם של הבן אדם ה-"+(i+1)+"?");
 			getUpdates(-1);
 			name=getMsg(0);
-			
+
 			sendMessage(lastUserId,
 					"כמה העדפה יש לאדם ה-"+(i+1)+"?");
 			getUpdates(-1);
 			priority=Float.valueOf(getMsg(0));
-			
+
 			sendMessage(lastUserId,
-					"באיזו עמדה האדם ה-"+(i+1)+"מעדיף לשמור?");
+					"באיזו עמדה האדם ה-"+(i+1)+" מעדיף לשמור?");
 			getUpdates(-1);
 			preference[0]=Integer.valueOf(getMsg(0));
-			
+
 			sendMessage(lastUserId,
 					"באיזו שעה האדם ה-"+(i+1)+"מעדיף לשמור?");
 			getUpdates(-1);
 			preference[1]=Integer.valueOf(getMsg(0));
-			
+
 			profiles[i] = new Profile(name, priority, preference);
 			sendMessage(lastUserId,
 					"הנה הפרופיל לאדם הראשון\n"+profiles[i].toString()+".");
@@ -181,12 +194,22 @@ public class TelegramController {
 					"עכשיו בוא נמשיך להבא!😁");
 		}
 		sendMessage(lastUserId,
-				"זהו!, תן לי כמה רגעים ואני יחשב את הרשימה האופטימלית🤓");
+				"זהו!, הכל שמור אצלי!🔐",
+				"reply_markup={\"keyboard\":["
+						+ "[{\"text\":\""+URLEncoder.encode("רשימה חד פעמית", StandardCharsets.UTF_8)+"\"}],"
+						+ "[{\"text\":\""+URLEncoder.encode("שמירת רשימת שמות", StandardCharsets.UTF_8)+"\"}],"
+						+ "[{\"text\":\""+URLEncoder.encode("חישוב רשימת שמות", StandardCharsets.UTF_8)+"\"}]"
+						+ "]}");
+		savedProfiles=profiles;
+	}
+
+	private static void calcSavedProfiles() throws IOException {
+		sendMessage(lastUserId,
+				"תן לי כמה רגעים ואני יחשב את הרשימה האופטימלית🤓");
 		ScheduleGenerator scheduleGenerator = new ScheduleGenerator();
-		Dna bestDna = scheduleGenerator.calculateBestSchedule(new Schedule(profiles, range));
+		Dna bestDna = scheduleGenerator.calculateBestSchedule(new Schedule(savedProfiles, savedRange));
 		sendMessage(lastUserId,
 				bestDna.getGenome().hebtoString());
-
 	}
 
 	public static void main(String[] args) throws IOException {
@@ -198,7 +221,7 @@ public class TelegramController {
 					.get(ret.getJSONArray("result").length()-1)).get("message")).get("from")).getInt("id");
 
 			String msgText = getMsg(0);
-					
+
 			sendMessage(lastUserId,
 					"got -> "+msgText);
 			System.out.println(ret);
@@ -214,10 +237,34 @@ public class TelegramController {
 				}
 				break;
 
+			case "שמירת רשימת שמות":
+				try {
+					saveProfiles();
+				} catch (Exception e) {
+					sendMessage(lastUserId,
+							"קרתה תקלה, נסה שוב🤪.",
+							"reply_markup={\"remove_keyboard\":true}");
+				}
+				break;
+
+			case "חישוב רשימת שמות":
+				try {
+					calcSavedProfiles();
+				} catch (Exception e) {
+					sendMessage(lastUserId,
+							"קרתה תקלה, נסה שוב🤪.",
+							"reply_markup={\"remove_keyboard\":true}");
+				}
+				break;
+
 			default:
 				sendMessage(lastUserId,
 						"נסה להשתמש במקלדת המותאמת אישית כדי לשלוח פקודה שאני יבין👇",
-						"reply_markup={\"keyboard\":[[{\"text\":\""+URLEncoder.encode("רשימה חד פעמית", StandardCharsets.UTF_8)+"\"}]]}");
+						"reply_markup={\"keyboard\":["
+								+ "[{\"text\":\""+URLEncoder.encode("רשימה חד פעמית", StandardCharsets.UTF_8)+"\"}],"
+								+ "[{\"text\":\""+URLEncoder.encode("שמירת רשימת שמות", StandardCharsets.UTF_8)+"\"}],"
+								+ "[{\"text\":\""+URLEncoder.encode("חישוב רשימת שמות", StandardCharsets.UTF_8)+"\"}]"
+								+ "]}");
 				break;
 			}
 		}
