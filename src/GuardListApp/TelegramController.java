@@ -5,12 +5,15 @@ import java.io.InputStream;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
 
 import org.json.JSONObject;
 
 import dna.Dna;
 import dna.Profile;
 import dna.Schedule;
+
+
 
 public class TelegramController {
 	//https://api.telegram.org/bot<token>/METHOD_NAME
@@ -21,7 +24,16 @@ public class TelegramController {
 	public static JSONObject ret; //last retrieved message from the server
 	public static Profile[] savedProfiles=null;
 	private static int[] savedRange;
+	private static HashMap<Integer, Pair> profilesMap = new HashMap<Integer, TelegramController.Pair>();
 
+	public class Pair{
+		public Profile[] savedProfiles;
+		public int[] savedRange;
+		public Pair(Profile[] savedProfiles, int[] savedRange) {
+			this.savedProfiles = savedProfiles;
+			this.savedRange = savedRange;
+		}
+	}
 	/**
 	 * sends https request to telegram server
 	 * @param method telegram api method string
@@ -71,6 +83,9 @@ public class TelegramController {
 			if (ret.getJSONArray("result").length()!=0) {
 				TelegramController.ret = ret;
 				idIncrement();
+				lastUserId = ((JSONObject) ((JSONObject) ((JSONObject) ret.getJSONArray("result")
+						.get(ret.getJSONArray("result").length()-1)).get("message")).get("from")).getInt("id");
+				setUser(lastUserId);
 				return;
 			}
 		} while (timeOut<0);
@@ -116,19 +131,23 @@ public class TelegramController {
 				get("message")).getString("text");
 	}
 
+	private static void setUser(int userId) {
+		//TODO improve memory efficiency by saving map object to temporary variable
+		if (profilesMap.containsKey(userId)) {
+			savedProfiles = profilesMap.get(userId).savedProfiles;
+			savedRange = profilesMap.get(userId).savedRange;
+		} else {
+			profilesMap.put(lastUserId, new TelegramController().new Pair(savedProfiles, savedRange));
+		}
+	}
+
 	/**
 	 * interactively makes On-The-Fly schedule with a chat user
 	 * @throws IOException
 	 */
 	private static void makeSchedule() throws IOException {
 		saveProfiles();
-		sendMessage(lastUserId,
-				"זהו!, תן לי כמה רגעים ואני יחשב את הרשימה האופטימלית🤓");
-		ScheduleGenerator scheduleGenerator = new ScheduleGenerator();
-		Dna bestDna = scheduleGenerator.calculateBestSchedule(new Schedule(savedProfiles, savedRange));
-		sendMessage(lastUserId,
-				bestDna.getGenome().hebtoString());
-
+		calcSavedProfiles();
 	}
 
 	private static void saveProfiles() throws IOException {
@@ -144,18 +163,18 @@ public class TelegramController {
 				"וכמה עמדות יש?🏠");
 
 		getUpdates(-1);
-		savedRange = new int[Integer.valueOf(getMsg(0))];
+		int[] range = new int[Integer.valueOf(getMsg(0))];
 
-		if (savedRange.length!=1) {
-			for (int i = 0; i < savedRange.length; i++) {
+		if (range.length!=1) {
+			for (int i = 0; i < range.length; i++) {
 				sendMessage(lastUserId,
 						"כמה אנשים צריכים לאייש את עמדה מספר "+(i+1)+"?");
 
 				getUpdates(-1);
-				savedRange[i] = Integer.valueOf(getMsg(0));
+				range[i] = Integer.valueOf(getMsg(0));
 			}
 		} else {
-			savedRange[0] = numOfPips;
+			range[0] = numOfPips;
 		}
 
 		sendMessage(lastUserId,
@@ -177,10 +196,16 @@ public class TelegramController {
 			getUpdates(-1);
 			priority=Float.valueOf(getMsg(0));
 
-			sendMessage(lastUserId,
-					"באיזו עמדה האדם ה-"+(i+1)+" מעדיף לשמור?");
-			getUpdates(-1);
-			preference[0]=Integer.valueOf(getMsg(0));
+
+			if (range==null || range.length==1) {
+				preference[0]=0;
+				range = new int[] {numOfPips};
+			} else {
+				sendMessage(lastUserId,
+						"באיזו עמדה האדם ה-"+(i+1)+" מעדיף לשמור?");
+				getUpdates(-1);
+				preference[0]=Integer.valueOf(getMsg(0));
+			}
 
 			sendMessage(lastUserId,
 					"באיזו שעה האדם ה-"+(i+1)+"מעדיף לשמור?");
@@ -189,18 +214,15 @@ public class TelegramController {
 
 			profiles[i] = new Profile(name, priority, preference);
 			sendMessage(lastUserId,
-					"הנה הפרופיל לאדם הראשון\n"+profiles[i].toString()+".");
+					"הנה הפרופיל לאדם ה"+i+"\n"+profiles[i].toString()+".");
 			if (i+1!=profiles.length) sendMessage(lastUserId,
 					"עכשיו בוא נמשיך להבא!😁");
 		}
-		sendMessage(lastUserId,
-				"זהו!, הכל שמור אצלי!🔐",
-				"reply_markup={\"keyboard\":["
-						+ "[{\"text\":\""+URLEncoder.encode("רשימה חד פעמית", StandardCharsets.UTF_8)+"\"}],"
-						+ "[{\"text\":\""+URLEncoder.encode("שמירת רשימת שמות", StandardCharsets.UTF_8)+"\"}],"
-						+ "[{\"text\":\""+URLEncoder.encode("חישוב רשימת שמות", StandardCharsets.UTF_8)+"\"}]"
-						+ "]}");
+
+		sendOptions("זהו!, הכל שמור אצלי!🔐");
+
 		savedProfiles=profiles;
+		savedRange=range;
 	}
 
 	private static void calcSavedProfiles() throws IOException {
@@ -208,8 +230,147 @@ public class TelegramController {
 				"תן לי כמה רגעים ואני יחשב את הרשימה האופטימלית🤓");
 		ScheduleGenerator scheduleGenerator = new ScheduleGenerator();
 		Dna bestDna = scheduleGenerator.calculateBestSchedule(new Schedule(savedProfiles, savedRange));
+		savedProfiles = bestDna.getGenome().getProfiles();
 		sendMessage(lastUserId,
 				bestDna.getGenome().hebtoString());
+	}
+
+	private static void manualEdit() throws IOException {
+		String strNames = "";
+		for (int i = 0; i < savedProfiles.length-1; i++) {
+			strNames+="[{\"text\":\""+URLEncoder.encode(savedProfiles[i].getName(), StandardCharsets.UTF_8)+"\"}],";
+		}
+		strNames+="[{\"text\":\""+URLEncoder.encode(savedProfiles[savedProfiles.length-1].getName(), StandardCharsets.UTF_8)+"\"}]";
+
+		sendMessage(lastUserId,
+				"בחר למי לבצע שינוי במקלדת המותאמת האישית!👪",
+				"reply_markup={\"keyboard\":["+strNames+"]}");
+
+		getUpdates(-1);
+
+		String name=getMsg(0);
+
+		sendMessage(lastUserId,
+				"מצויין😃,עכשיו תבחר מה אתה רוצה לשנות!📊",
+				"reply_markup={\"keyboard\":["+
+						"[{\"text\":\""+URLEncoder.encode("שם", StandardCharsets.UTF_8)+"\"}],"+
+						"[{\"text\":\""+URLEncoder.encode("העדפה", StandardCharsets.UTF_8)+"\"}],"+
+						"[{\"text\":\""+URLEncoder.encode("עמדה מועדפת", StandardCharsets.UTF_8)+"\"}],"+
+						"[{\"text\":\""+URLEncoder.encode("שעה מועדפת", StandardCharsets.UTF_8)+"\"}],"+
+						"[{\"text\":\""+URLEncoder.encode("עמדה סופית", StandardCharsets.UTF_8)+"\"}],"+
+						"[{\"text\":\""+URLEncoder.encode("שעה סופית", StandardCharsets.UTF_8)+"\"}]"+
+				"]}");
+
+		getUpdates(-1);
+
+		switch (getMsg(0).toLowerCase()) {
+		case "שם":
+			for (int i = 0; i < savedProfiles.length; i++) {
+				if (savedProfiles[i].getName().equals(name)) {
+					sendMessage(lastUserId,
+							"עכשיו תשלח את השם החדש בשביל "+name,
+							"reply_markup={\"remove_keyboard\":true}");
+					getUpdates(-1);
+
+					savedProfiles[i].setName(getMsg(0));
+					
+					sendMessage(lastUserId,
+							name+" שונה ל"+getMsg(0)+"👨");
+					return;
+				}
+			}
+			break;
+
+		case "העדפה":
+			for (int i = 0; i < savedProfiles.length; i++) {
+				if (savedProfiles[i].getName().equals(name)) {
+					sendMessage(lastUserId,
+							"עכשיו תשלח את ההעדפה החדשה בשביל "+name,
+							"reply_markup={\"remove_keyboard\":true}");
+					getUpdates(-1);
+
+					savedProfiles[i].setPriority(Float.valueOf(getMsg(0)));
+					
+					sendMessage(lastUserId,
+							"הפעולה הושלמה בהצלחה🤖");
+					return;
+				}
+			}
+			break;
+
+		case "עמדה מועדפת":
+			for (int i = 0; i < savedProfiles.length; i++) {
+				if (savedProfiles[i].getName().equals(name)) {
+					sendMessage(lastUserId,
+							"עכשיו תשלח את העמדה החדשה בשביל "+name,
+							"reply_markup={\"remove_keyboard\":true}");
+					getUpdates(-1);
+
+					savedProfiles[i].setPreference(new int[] {Integer.valueOf(getMsg(0)), savedProfiles[i].getPreference()[1]});
+					
+					sendMessage(lastUserId,
+							"הפעולה הושלמה בהצלחה🤖");
+					return;
+				}
+			}
+			break;
+
+		case "שעה מועדפת":
+			for (int i = 0; i < savedProfiles.length; i++) {
+				if (savedProfiles[i].getName().equals(name)) {
+					sendMessage(lastUserId,
+							"עכשיו תשלח את השעה החדשה בשביל "+name,
+							"reply_markup={\"remove_keyboard\":true}");
+					getUpdates(-1);
+
+					savedProfiles[i].setPreference(new int[] {savedProfiles[i].getPreference()[0], Integer.valueOf(getMsg(0))});
+					
+					sendMessage(lastUserId,
+							"הפעולה הושלמה בהצלחה🤖");
+					return;
+				}
+			}
+			break;
+
+		case "עמדה סופית":
+			//TODO MAKE SURE YOU NOTICE THE USER AND SWAP THE STATION WITH SOMNE ELSE!!!
+			for (int i = 0; i < savedProfiles.length; i++) {
+				if (savedProfiles[i].getName().equals(name)) {
+					sendMessage(lastUserId,
+							"עכשיו תשלח את העמדה החדשה בשביל "+name,
+							"reply_markup={\"remove_keyboard\":true}");
+					getUpdates(-1);
+
+					savedProfiles[i].setPost(new int[] {Integer.valueOf(getMsg(0)), savedProfiles[i].getPost()[1]});
+					
+					sendMessage(lastUserId,
+							"הפעולה הושלמה בהצלחה🤖");
+					return;
+				}
+			}
+			break;
+
+		case "שעה סופית":
+			//TODO MAKE SURE YOU NOTICE THE USER AND SWAP THE STATION WITH SOMNE ELSE!!!
+			for (int i = 0; i < savedProfiles.length; i++) {
+				if (savedProfiles[i].getName().equals(name)) {
+					sendMessage(lastUserId,
+							"עכשיו תשלח את השעה החדשה בשביל "+name,
+							"reply_markup={\"remove_keyboard\":true}");
+					getUpdates(-1);
+
+					savedProfiles[i].setPost(new int[] {savedProfiles[i].getPost()[0], Integer.valueOf(getMsg(0))});
+					
+					sendMessage(lastUserId,
+							"הפעולה הושלמה בהצלחה🤖");
+					return;
+				}
+			}
+			break;
+
+		default:
+			throw new IOException();
+		}
 	}
 
 	public static void main(String[] args) throws IOException {
@@ -217,17 +378,13 @@ public class TelegramController {
 		while (true) {
 			getUpdates(-1);
 
-			lastUserId = ((JSONObject) ((JSONObject) ((JSONObject) ret.getJSONArray("result")
-					.get(ret.getJSONArray("result").length()-1)).get("message")).get("from")).getInt("id");
+			//			sendMessage(lastUserId,
+			//					"got -> "+msgText);
 
-			String msgText = getMsg(0);
+			//			System.out.println(ret);
 
-			sendMessage(lastUserId,
-					"got -> "+msgText);
-			System.out.println(ret);
-
-			switch (msgText.toLowerCase()) {
-			case "רשימה חד פעמית":
+			switch (getMsg(0).toLowerCase()) {
+			case "רשימה חדשה":
 				try {
 					makeSchedule();
 				} catch (Exception e) {
@@ -257,16 +414,36 @@ public class TelegramController {
 				}
 				break;
 
+			case "שינוי ידני":
+				try {
+					manualEdit();
+					sendMessage(lastUserId,
+							"שבצ\"ק מעודכן:");
+					sendMessage(lastUserId,
+							new Schedule(savedProfiles, savedRange).hebtoString());
+				} catch (Exception e) {
+					sendMessage(lastUserId,
+							"קרתה תקלה, נסה שוב🤪.",
+							"reply_markup={\"remove_keyboard\":true}");
+				}
+				break;
+
 			default:
-				sendMessage(lastUserId,
-						"נסה להשתמש במקלדת המותאמת אישית כדי לשלוח פקודה שאני יבין👇",
-						"reply_markup={\"keyboard\":["
-								+ "[{\"text\":\""+URLEncoder.encode("רשימה חד פעמית", StandardCharsets.UTF_8)+"\"}],"
-								+ "[{\"text\":\""+URLEncoder.encode("שמירת רשימת שמות", StandardCharsets.UTF_8)+"\"}],"
-								+ "[{\"text\":\""+URLEncoder.encode("חישוב רשימת שמות", StandardCharsets.UTF_8)+"\"}]"
-								+ "]}");
+				sendOptions("נסה להשתמש במקלדת המותאמת אישית כדי לשלוח פקודה שאני יבין👇");
 				break;
 			}
+			profilesMap.put(lastUserId, new TelegramController().new Pair(savedProfiles, savedRange));
 		}
 	}
+
+	private static void sendOptions(String text) throws IOException {
+		httpsRequstMethod("sendMessage", "chat_id="+lastUserId+"&text="+URLEncoder.encode(text, StandardCharsets.UTF_8)
+		+"&reply_markup={\"keyboard\":["
+		+ "[{\"text\":\""+URLEncoder.encode("רשימה חדשה", StandardCharsets.UTF_8)+"\"}],"
+		+ "[{\"text\":\""+URLEncoder.encode("שמירת רשימת שמות", StandardCharsets.UTF_8)+"\"}],"
+		+ "[{\"text\":\""+URLEncoder.encode("שינוי ידני", StandardCharsets.UTF_8)+"\"}],"
+		+ "[{\"text\":\""+URLEncoder.encode("חישוב רשימת שמות", StandardCharsets.UTF_8)+"\"}]"
+		+ "]}");
+	}
+
 }
