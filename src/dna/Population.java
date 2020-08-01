@@ -118,8 +118,8 @@ public class Population implements Serializable{//Comparator<Dna>,
 	}
 	
 	public void prettyPrintDna(Dna dna, int timeScale, Date beginDate) {
-		System.out.println("\n\nfitness: "+dna.getFitness());
-		System.out.println("--------------------------");
+//		System.out.println("\n\nfitness: "+dna.getFitness());
+//		System.out.println("--------------------------");
 		Profile[] tempProfiles = dna.getGenome().getProfiles();
 		Arrays.sort(tempProfiles);
 		for (Profile profile : tempProfiles) {
@@ -129,9 +129,9 @@ public class Population implements Serializable{//Comparator<Dna>,
 			Date displayTimePreference = new
 					Date((beginDate.getTime()+ 3600000*(timeScale/range[profile.getPreference()[0]]*
 							profile.getPreference()[1])));
-			System.out.print(profile.getName()+"    |    prefer: ");
-			System.out.print(profile.getPreference()[0]+":"+profile.getPreference()[1]+"->"+displayTimePreference.getHours()+":"+displayTimePreference.getMinutes()+"    |    post: ");
-			System.out.println(profile.getPost()[0]+":"+profile.getPost()[1]+"->"+displayTimePost.getHours()+":"+displayTimePost.getMinutes());
+//			System.out.print(profile.getName()+"    |    prefer: ");
+//			System.out.print(profile.getPreference()[0]+":"+profile.getPreference()[1]+"->"+displayTimePreference.getHours()+":"+displayTimePreference.getMinutes()+"    |    post: ");
+//			System.out.println(profile.getPost()[0]+":"+profile.getPost()[1]+"->"+displayTimePost.getHours()+":"+displayTimePost.getMinutes());
 		}
 		int algPosts = 0;
 		int algLocs = 0;
@@ -146,9 +146,9 @@ public class Population implements Serializable{//Comparator<Dna>,
 				algPostLocs++;
 			}
 		}
-		System.out.println("\naligned posts: "+algPosts);
-		System.out.println("aligned locations: "+algLocs);
-		System.out.println("aligned posts and locations: "+algPostLocs);
+//		System.out.println("\naligned posts: "+algPosts);
+//		System.out.println("aligned locations: "+algLocs);
+//		System.out.println("aligned posts and locations: "+algPostLocs);
 	}
 	
 	/*public Dna[] crossover() {
@@ -203,7 +203,7 @@ public class Population implements Serializable{//Comparator<Dna>,
 			fitnesArr.set(i, fitnesArr.get(fitnesArr.size() - i - 1));
 			fitnesArr.set(fitnesArr.size() - i - 1, temp);
 		}
-		System.out.println(fitnesArr);
+//		System.out.println(fitnesArr);
 		for(int i=0; i<=100;i++) {
 			
 		}
@@ -213,11 +213,11 @@ public class Population implements Serializable{//Comparator<Dna>,
 		int counter = 0;
 		for (Dna dna : population) {
 			if(dna.evaluate()) {
-				System.out.println(dna);
+//				System.out.println(dna);
 				counter++;
 			}
 		}
-		System.out.println(counter + " possible schedules");
+//		System.out.println(counter + " possible schedules");
 	}
 	
 	public Dna[] evaluate() {
@@ -233,7 +233,7 @@ public class Population implements Serializable{//Comparator<Dna>,
 	public void devaluate() {
 		for (Dna dna : population) {
 			if(!dna.evaluate()) {
-				System.out.println(dna);
+//				System.out.println(dna);
 			}
 		}
 	}
@@ -241,7 +241,7 @@ public class Population implements Serializable{//Comparator<Dna>,
 	public void evaluate(ArrayList<Dna> pop) {
 		for (Dna dna : pop) {
 			if(dna.evaluate()) {
-				System.out.println(dna);
+//				System.out.println(dna);
 			}
 		}
 	}
@@ -249,7 +249,7 @@ public class Population implements Serializable{//Comparator<Dna>,
 	public boolean checkError(ArrayList<Dna> pop) {
 		for (Dna dna : pop) {
 			if(!dna.evaluate()) {
-				System.out.println(dna);
+//				System.out.println(dna);
 				return false;
 			}
 		}
@@ -259,7 +259,7 @@ public class Population implements Serializable{//Comparator<Dna>,
 	public boolean checkError() {
 		for (Dna dna : population) {
 			if(!dna.evaluate()) {
-				System.out.println(dna);
+//				System.out.println(dna);
 				return false;
 			}
 		}
@@ -282,21 +282,21 @@ public class Population implements Serializable{//Comparator<Dna>,
 		try {
 		      File myObj = new File(filename);
 		      if (myObj.createNewFile()) {
-		        System.out.println("File created: " + myObj.getName());
+//		        System.out.println("File created: " + myObj.getName());
 		      } else {
-		        System.out.println(filename+" file already exists. Overwriting...");
+//		        System.out.println(filename+" file already exists. Overwriting...");
 		      }
 		    } catch (IOException e) {
-		      System.out.println("An error occurred.");
+//		      System.out.println("An error occurred.");
 		      e.printStackTrace();
 		    }
 		try {
 		      FileWriter myWriter = new FileWriter(filename);
 		      myWriter.write(eval.toString());
 		      myWriter.close();
-		      System.out.println("Successfully wrote to the file.");
+//		      System.out.println("Successfully wrote to the file.");
 		    } catch (IOException e) {
-		      System.out.println("An error occurred.");
+//		      System.out.println("An error occurred.");
 		      e.printStackTrace();
 		    }
 	}

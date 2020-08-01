@@ -52,11 +52,11 @@ public class App {
 		int i=0;
 		boolean expresion = true;
 		do {
-			System.out.println("generation->" + i);
+//			System.out.println("generation->" + i);
 			//calculate fitness
 			population.sortByFitness();
-			System.out.println("highest fitness="+population.getPopulation().get(popSize-1).getFitness());
-			System.out.println("number of possible schedules=" + population.evaluate().length);
+//			System.out.println("highest fitness="+population.getPopulation().get(popSize-1).getFitness());
+//			System.out.println("number of possible schedules=" + population.evaluate().length);
 			//crossover+new generation
 			population.newGeneration();//population.crossover());
 			//mutation+hyper mutation
@@ -85,12 +85,12 @@ public class App {
 		population.calculateFitness();
 		
 		population.sortByFitness();
-		System.out.println("eval:");
+//		System.out.println("eval:");
 		population.printEvaluate();
 		Dna[] eval = population.evaluate();
 		population.prettyPrintDna(eval[eval.length-1], timeScale, beginDate);
-		System.out.println();
+//		System.out.println();
 		population.saveSchedule("bestSchedule.txt", eval[eval.length-1]);
-		System.out.println("generations: "+ i);
+//		System.out.println("generations: "+ i);
 	}
 }

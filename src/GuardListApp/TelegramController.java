@@ -138,6 +138,8 @@ public class TelegramController {
 			savedRange = profilesMap.get(userId).savedRange;
 		} else {
 			profilesMap.put(lastUserId, new TelegramController().new Pair(savedProfiles, savedRange));
+			savedProfiles=null;
+			savedRange=null;
 		}
 	}
 
@@ -192,9 +194,9 @@ public class TelegramController {
 			name=getMsg(0);
 
 			sendMessage(lastUserId,
-					"כמה העדפה יש לאדם ה-"+(i+1)+"?");
+					"כמה העדפה יש לאדם ה-"+(i+1)+"? (מ-0 עד 10)");
 			getUpdates(-1);
-			priority=Float.valueOf(getMsg(0));
+			priority=Float.valueOf(getMsg(0))/10;
 
 
 			if (range==null || range.length==1) {
@@ -202,13 +204,13 @@ public class TelegramController {
 				range = new int[] {numOfPips};
 			} else {
 				sendMessage(lastUserId,
-						"באיזו עמדה האדם ה-"+(i+1)+" מעדיף לשמור?");
+						"באיזו עמדה האדם ה-"+(i+1)+" מעדיף לשמור? (מ-0 עד "+(range.length-1)+")");
 				getUpdates(-1);
 				preference[0]=Integer.valueOf(getMsg(0));
 			}
 
 			sendMessage(lastUserId,
-					"באיזו שעה האדם ה-"+(i+1)+"מעדיף לשמור?");
+					"באיזו שעה האדם ה-"+(i+1)+"מעדיף לשמור? (מ-0 עד "+(range[preference[0]]-1)+")");
 			getUpdates(-1);
 			preference[1]=Integer.valueOf(getMsg(0));
 
@@ -381,7 +383,7 @@ public class TelegramController {
 			//			sendMessage(lastUserId,
 			//					"got -> "+msgText);
 
-			//			System.out.println(ret);
+			System.out.println(ret);
 
 			switch (getMsg(0).toLowerCase()) {
 			case "רשימה חדשה":
@@ -394,18 +396,12 @@ public class TelegramController {
 				}
 				break;
 
-			case "שמירת רשימת שמות":
-				try {
-					saveProfiles();
-				} catch (Exception e) {
-					sendMessage(lastUserId,
-							"קרתה תקלה, נסה שוב🤪.",
-							"reply_markup={\"remove_keyboard\":true}");
-				}
-				break;
-
 			case "חישוב רשימת שמות":
 				try {
+					if (savedProfiles==null||savedProfiles.length==0) {
+						sendMessage(lastUserId,"אין מידע על אנשים במערכת, נסה קודם ליצור רשימת שמות📓");
+						break;
+					}
 					calcSavedProfiles();
 				} catch (Exception e) {
 					sendMessage(lastUserId,
@@ -416,6 +412,10 @@ public class TelegramController {
 
 			case "שינוי ידני":
 				try {
+					if (savedProfiles==null||savedProfiles.length==0) {
+						sendMessage(lastUserId,"אין מידע על אנשים במערכת, נסה קודם ליצור רשימת שמות📓");
+						break;
+					}
 					manualEdit();
 					sendMessage(lastUserId,
 							"שבצ\"ק מעודכן:");
@@ -440,7 +440,6 @@ public class TelegramController {
 		httpsRequstMethod("sendMessage", "chat_id="+lastUserId+"&text="+URLEncoder.encode(text, StandardCharsets.UTF_8)
 		+"&reply_markup={\"keyboard\":["
 		+ "[{\"text\":\""+URLEncoder.encode("רשימה חדשה", StandardCharsets.UTF_8)+"\"}],"
-		+ "[{\"text\":\""+URLEncoder.encode("שמירת רשימת שמות", StandardCharsets.UTF_8)+"\"}],"
 		+ "[{\"text\":\""+URLEncoder.encode("שינוי ידני", StandardCharsets.UTF_8)+"\"}],"
 		+ "[{\"text\":\""+URLEncoder.encode("חישוב רשימת שמות", StandardCharsets.UTF_8)+"\"}]"
 		+ "]}");
