@@ -1,5 +1,6 @@
 package dna;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Random;
 
@@ -115,6 +116,13 @@ public class Dna implements Serializable, Comparable<Dna>{
 		return genome.evaluate();
 	}
 
+	public void sortByTime() {
+//		Dna[] temp = population.toArray(new Dna[population.size()]);
+		Arrays.sort(genome.getProfiles());
+//		population.clear();
+//		population=new ArrayList<Dna>(Arrays.asList(temp));
+	}
+	
 	@Override
 	public int compareTo(Dna o) {
 		return (int) ((fitness*100)-(o.fitness*100));

@@ -66,6 +66,7 @@ public class ScheduleGenerator {
 		Dna[] eval = population.evaluate();
 //		System.out.println();
 //		System.out.println("generations: "+ i);
+		eval[eval.length-1].sortByTime();
 		return eval[eval.length-1];
 	}
 }
