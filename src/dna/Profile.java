@@ -136,6 +136,6 @@ public class Profile implements Serializable, Comparable<Profile>{
 
 	@Override
 	public int compareTo(Profile arg0) {
-		return (post[1]-arg0.getPost()[1])-(post[0]-arg0.getPost()[0]);
+		return (post[0]-arg0.getPost()[0])+(post[1]-arg0.getPost()[1]);
 	}
 }
