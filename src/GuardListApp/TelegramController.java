@@ -17,6 +17,7 @@ import dna.Schedule;
 
 public class TelegramController {
 	//https://api.telegram.org/bot<token>/METHOD_NAME
+	private static TelegramData data;
 	private static String token = "1379983604:AAFf_X5fPCy5krKdnuP4VdwR0uZZNRLhyOM";
 	private static String requestUrl = "https://api.telegram.org/bot"+token+"/";
 	private static int lastupdateId=0;
@@ -86,6 +87,9 @@ public class TelegramController {
 				lastUserId = ((JSONObject) ((JSONObject) ((JSONObject) ret.getJSONArray("result")
 						.get(ret.getJSONArray("result").length()-1)).get("message")).get("from")).getInt("id");
 				setUser(lastUserId);
+				synchronized (data) {
+					data.unread.add(ret);
+				}
 				return;
 			}
 		} while (timeOut<0);
@@ -275,7 +279,7 @@ public class TelegramController {
 					getUpdates(-1);
 
 					savedProfiles[i].setName(getMsg(0));
-					
+
 					sendMessage(lastUserId,
 							name+" שונה ל"+getMsg(0)+"👨");
 					return;
@@ -292,7 +296,7 @@ public class TelegramController {
 					getUpdates(-1);
 
 					savedProfiles[i].setPriority(Float.valueOf(getMsg(0)));
-					
+
 					sendMessage(lastUserId,
 							"הפעולה הושלמה בהצלחה🤖");
 					return;
@@ -309,7 +313,7 @@ public class TelegramController {
 					getUpdates(-1);
 
 					savedProfiles[i].setPreference(new int[] {Integer.valueOf(getMsg(0)), savedProfiles[i].getPreference()[1]});
-					
+
 					sendMessage(lastUserId,
 							"הפעולה הושלמה בהצלחה🤖");
 					return;
@@ -326,7 +330,7 @@ public class TelegramController {
 					getUpdates(-1);
 
 					savedProfiles[i].setPreference(new int[] {savedProfiles[i].getPreference()[0], Integer.valueOf(getMsg(0))});
-					
+
 					sendMessage(lastUserId,
 							"הפעולה הושלמה בהצלחה🤖");
 					return;
@@ -344,7 +348,7 @@ public class TelegramController {
 					getUpdates(-1);
 
 					savedProfiles[i].setPost(new int[] {Integer.valueOf(getMsg(0)), savedProfiles[i].getPost()[1]});
-					
+
 					sendMessage(lastUserId,
 							"הפעולה הושלמה בהצלחה🤖");
 					return;
@@ -362,7 +366,7 @@ public class TelegramController {
 					getUpdates(-1);
 
 					savedProfiles[i].setPost(new int[] {savedProfiles[i].getPost()[0], Integer.valueOf(getMsg(0))});
-					
+
 					sendMessage(lastUserId,
 							"הפעולה הושלמה בהצלחה🤖");
 					return;
@@ -376,15 +380,16 @@ public class TelegramController {
 	}
 
 	public static void main(String[] args) throws IOException {
+		data = new TelegramData();
 		System.out.println("begin");
 		while (true) {
 			getUpdates(-1);
-
-			//			sendMessage(lastUserId,
-			//					"got -> "+msgText);
-
+			
 			System.out.println(ret);
-
+			for (Object update : ret.getJSONArray("result")) {
+				System.out.println(((JSONObject) update).query("/message/text"));
+			}
+			
 			switch (getMsg(0).toLowerCase()) {
 			case "רשימה חדשה":
 				try {

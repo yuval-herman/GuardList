@@ -7,11 +7,12 @@ import java.net.URL;
 import org.json.JSONObject;
 
 public class TelegramUpdateListener implements Runnable{
-	private static String token = "1379983604:AAFf_X5fPCy5krKdnuP4VdwR0uZZNRLhyOM";
-	private static String requestUrl = "https://api.telegram.org/bot"+token+"/";
-	private static int lastupdateId=0;
-	public static JSONObject ret; //last retrieved message from the server
+	private TelegramData data;
 
+	public TelegramUpdateListener(TelegramData data) {
+		// TODO Auto-generated constructor stub
+		this.data = data;
+	}
 
 	/**
 	 * gets all unread messages from the server via long pulling
@@ -19,15 +20,21 @@ public class TelegramUpdateListener implements Runnable{
 	 * @return return json formatted answer from server, null if timed out
 	 * @throws IOException
 	 */
-	public static void getUpdates(int timeOut) throws IOException {
-		JSONObject ret = httpsRequstMethod(
-				"getUpdates", "timeout="+(timeOut<0?(60*60):timeOut),
-				"offset=" + (lastupdateId!=0 ? String.valueOf(lastupdateId+1) : "0"));
-		if (ret.getJSONArray("result").length()!=0) {
-			TelegramController.ret = ret;
-			idIncrement();
-			return;
+	public void getUpdates(int timeOut) throws IOException {
+		do {
+			JSONObject ret = httpsRequstMethod(
+					"getUpdates", "timeout="+(timeOut<0?(60*60):timeOut),
+					"offset=" + (data.getLastupdateId()!=0 ? String.valueOf(data.getLastupdateId()+1) : "0"));
+			if (ret.getJSONArray("result").length()!=0) {
+				data.ret = ret;
+				idIncrement();
+				synchronized (data) {//TODO uncertain this is actually effective
+					data.unread.add(ret);
+				}
+				return;
+			}
 		}
+		while(timeOut<0);
 		return;
 
 	}
@@ -39,8 +46,8 @@ public class TelegramUpdateListener implements Runnable{
 	 * @return return json formatted object from telegram server
 	 * @throws IOException
 	 */
-	public static JSONObject httpsRequstMethod(String method, String... args) throws IOException{
-		String requetString = requestUrl+method;
+	public JSONObject httpsRequstMethod(String method, String... args) throws IOException{
+		String requetString = data.getRequestUrl()+method;
 		if (args.length>0) {
 			requetString+="?"+args[0];
 			for (int i = 1; i < args.length; i++) requetString+="&"+args[i];
@@ -62,16 +69,17 @@ public class TelegramUpdateListener implements Runnable{
 	 * increments the last id of the received message
 	 * @param ret the last received message from the server
 	 */
-	public static void idIncrement() {
-		JSONObject obj = (JSONObject) ret.getJSONArray("result").get(ret.getJSONArray("result").length()-1);
-		lastupdateId=obj.getInt("update_id");
+	public void idIncrement() {
+		JSONObject obj = (JSONObject) data.ret.getJSONArray("result").get(data.ret.getJSONArray("result").length()-1);
+		data.setLastupdateId(obj.getInt("update_id"));
 	}
 
 	@Override
 	public void run() {
 		// TODO Auto-generated method stub
 		try {
-			getUpdates(0);
+			System.out.println("run");
+			getUpdates(-1);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
