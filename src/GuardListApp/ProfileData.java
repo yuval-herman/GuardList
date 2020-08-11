@@ -5,10 +5,13 @@ import dna.Schedule;
 
 public class ProfileData {
 	private Profile[] connnectedProfiles;
+	Profile profile;
 	private Schedule schedule;
 	private boolean isAdmin;
-	public ProfileData(Profile[] connnectedProfiles, Schedule schedule, boolean isAdmin) {
+	
+	public ProfileData(Profile[] connnectedProfiles, Profile profile, Schedule schedule, boolean isAdmin) {
 		this.connnectedProfiles = connnectedProfiles;
+		this.profile = profile;
 		this.schedule = schedule;
 		this.isAdmin = isAdmin;
 	}
