@@ -25,16 +25,9 @@ public class TelegramController {
 	public static JSONObject ret; //last retrieved message from the server
 	public static Profile[] savedProfiles=null;
 	private static int[] savedRange;
-	private static HashMap<Integer, Pair> profilesMap = new HashMap<Integer, TelegramController.Pair>();
+	private static HashMap<Integer, ProfileData> profilesMap = new HashMap<Integer, ProfileData>();
 
-	public class Pair{
-		public Profile[] savedProfiles;
-		public int[] savedRange;
-		public Pair(Profile[] savedProfiles, int[] savedRange) {
-			this.savedProfiles = savedProfiles;
-			this.savedRange = savedRange;
-		}
-	}
+	
 	/**
 	 * sends https request to telegram server
 	 * @param method telegram api method string
@@ -138,8 +131,8 @@ public class TelegramController {
 	private static void setUser(int userId) {
 		//TODO improve memory efficiency by saving map object to temporary variable
 		if (profilesMap.containsKey(userId)) {
-			savedProfiles = profilesMap.get(userId).savedProfiles;
-			savedRange = profilesMap.get(userId).savedRange;
+			savedProfiles = profilesMap.get(userId).data.getSavedProfiles();
+			savedRange = profilesMap.get(userId).data.getSavedRange();
 		} else {
 			profilesMap.put(lastUserId, new TelegramController().new Pair(savedProfiles, savedRange));
 			savedProfiles=null;
@@ -390,7 +383,7 @@ public class TelegramController {
 				System.out.println(((JSONObject) update).query("/message/text"));
 			}
 			
-			switch (getMsg(0).toLowerCase()) {
+			/*switch (getMsg(0).toLowerCase()) {
 			case "רשימה חדשה":
 				try {
 					makeSchedule();
@@ -436,7 +429,7 @@ public class TelegramController {
 			default:
 				sendOptions("נסה להשתמש במקלדת המותאמת אישית כדי לשלוח פקודה שאני יבין👇");
 				break;
-			}
+			}*/
 			profilesMap.put(lastUserId, new TelegramController().new Pair(savedProfiles, savedRange));
 		}
 	}
