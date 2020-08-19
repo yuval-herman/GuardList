@@ -3,6 +3,7 @@ package GuardListApp;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.Stack;
 
 import org.json.JSONObject;
 
@@ -11,18 +12,29 @@ import dna.Profile;
 import dna.Schedule;
 
 public class TelegramChat implements Runnable{
+	public Stack<JSONObject> unread;
 	int userId;
 	JSONObject activatorMsg;
-	Profile profile;
+	ProfileData profileData;
 	TelegramData data;
 	boolean isAdmin;
+	volatile boolean isRunning = true;
 	Profile[] connectedProfiles;
-	
-	public TelegramChat(int userId, JSONObject activatorMsg, Profile profile, TelegramData data) {
+
+	public int getUserId() {
+		return userId;
+	}
+
+	public void setUserId(int userId) {
+		this.userId = userId;
+	}
+
+	public TelegramChat(int userId, JSONObject activatorMsg, ProfileData profile, TelegramData data) {
 		this.userId = userId;
 		this.activatorMsg = activatorMsg;
-		this.profile = profile;
+		this.profileData = profile;
 		this.data = data;
+		this.unread = new Stack<JSONObject>();
 	}
 
 	@Override
@@ -33,29 +45,39 @@ public class TelegramChat implements Runnable{
 			try {
 				makeSchedule();
 			} catch (Exception e) {
-				TelegramApi.sendMessage(data.getRequestUrl(), userId,
-						"קרתה תקלה, נסה שוב🤪.",
-						"reply_markup={\"remove_keyboard\":true}");
+				try {
+					TelegramApi.sendMessage(data.getRequestUrl(), userId,
+							"קרתה תקלה, נסה שוב🤪.",
+							"reply_markup={\"remove_keyboard\":true}");
+				} catch (IOException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
 			}
 			break;
 
 		case "חישוב רשימת שמות":
 			try {
-				if (savedProfiles==null||savedProfiles.length==0) {
+				if (data.savedProfiles==null||data.savedProfiles.length==0) {
 					sendMessage(userId,"אין מידע על אנשים במערכת, נסה קודם ליצור רשימת שמות📓");
 					break;
 				}
 				calcSavedProfiles();
 			} catch (Exception e) {
-				sendMessage(userId,
-						"קרתה תקלה, נסה שוב🤪.",
-						"reply_markup={\"remove_keyboard\":true}");
+				try {
+					sendMessage(userId,
+							"קרתה תקלה, נסה שוב🤪.",
+							"reply_markup={\"remove_keyboard\":true}");
+				} catch (IOException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
 			}
 			break;
 
 		case "שינוי ידני":
 			try {
-				if (savedProfiles==null||savedProfiles.length==0) {
+				if (data.savedProfiles==null||data.savedProfiles.length==0) {
 					sendMessage(userId,"אין מידע על אנשים במערכת, נסה קודם ליצור רשימת שמות📓");
 					break;
 				}
@@ -63,18 +85,34 @@ public class TelegramChat implements Runnable{
 				sendMessage(userId,
 						"שבצ\"ק מעודכן:");
 				sendMessage(userId,
-						new Schedule(savedProfiles, savedRange).hebtoString());
+						new Schedule(data.savedProfiles, data.savedRange).hebtoString());
 			} catch (Exception e) {
-				sendMessage(userId,
-						"קרתה תקלה, נסה שוב🤪.",
-						"reply_markup={\"remove_keyboard\":true}");
+				try {
+					sendMessage(userId,
+							"קרתה תקלה, נסה שוב🤪.",
+							"reply_markup={\"remove_keyboard\":true}");
+				} catch (IOException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
 			}
 			break;
 
 		default:
-			sendOptions("נסה להשתמש במקלדת המותאמת אישית כדי לשלוח פקודה שאני יבין👇");
+			try {
+				sendOptions("נסה להשתמש במקלדת המותאמת אישית כדי לשלוח פקודה שאני יבין👇");
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 			break;
 		}
+		exit();
+	}
+
+	private void exit() {
+		// TODO Auto-generated method stub
+		isRunning = false;
 	}
 
 	/**
@@ -82,45 +120,66 @@ public class TelegramChat implements Runnable{
 	 * @return text from message object
 	 */
 	private String getMsg() {
-		return (String) activatorMsg.query("/message/text");
+		if (unread.isEmpty()) {
+			return (String) activatorMsg.query("/message/text");
+		}
+		String msg = (String) unread.firstElement().query("/message/text");
+		unread.removeElementAt(0);
+		return msg;
 	}
-	
-	private static void sendOptions(String text) throws IOException {
-		httpsRequstMethod("sendMessage", "chat_id="+lastUserId+"&text="+URLEncoder.encode(text, StandardCharsets.UTF_8)
+
+	private void sendOptions(String text) throws IOException {
+		TelegramApi.httpsRequstMethod(data.getRequestUrl(), "sendMessage", "chat_id="+userId+"&text="+URLEncoder.encode(text, StandardCharsets.UTF_8)
 		+"&reply_markup={\"keyboard\":["
 		+ "[{\"text\":\""+URLEncoder.encode("רשימה חדשה", StandardCharsets.UTF_8)+"\"}],"
 		+ "[{\"text\":\""+URLEncoder.encode("שינוי ידני", StandardCharsets.UTF_8)+"\"}],"
 		+ "[{\"text\":\""+URLEncoder.encode("חישוב רשימת שמות", StandardCharsets.UTF_8)+"\"}]"
 		+ "]}");
 	}
-	
+
 	private void makeSchedule() throws IOException {
 		saveProfiles();
 		calcSavedProfiles();
 	}
-	
+
+	/**
+	 * send a message to a chat by id
+	 * @param chat_id id to send the message to
+	 * @param text text to send in the message body
+	 * @param args arguments to pass for the sendMessage telegram method
+	 * @return return json formatted answer from server
+	 * @throws IOException
+	 */
+	public JSONObject sendMessage(int chat_id, String text, String... args) throws IOException {
+		String[] args2 = new String[args.length + 2];
+		System.arraycopy(args, 0, args2, 0, args.length);
+		args2[args2.length-2] = "chat_id="+chat_id;
+		args2[args2.length-1] = "text="+URLEncoder.encode(text, StandardCharsets.UTF_8);
+		return TelegramApi.httpsRequstMethod(data.getRequestUrl(), "sendMessage", args2);
+	}
+
 	private void saveProfiles() throws IOException {
 		sendMessage(userId,
 				"כמה אנשים נמצאים?",
 				"reply_markup={\"remove_keyboard\":true}");
 
-		getUpdates(-1);
+		getUpdates();
 
-		int numOfPips = Integer.valueOf(getMsg(0));
+		int numOfPips = Integer.valueOf(getMsg());
 
 		sendMessage(userId,
 				"וכמה עמדות יש?🏠");
 
-		getUpdates(-1);
-		int[] range = new int[Integer.valueOf(getMsg(0))];
+		getUpdates();
+		int[] range = new int[Integer.valueOf(getMsg())];
 
 		if (range.length!=1) {
 			for (int i = 0; i < range.length; i++) {
 				sendMessage(userId,
 						"כמה אנשים צריכים לאייש את עמדה מספר "+(i+1)+"?");
 
-				getUpdates(-1);
-				range[i] = Integer.valueOf(getMsg(0));
+				getUpdates();
+				range[i] = Integer.valueOf(getMsg());
 			}
 		} else {
 			range[0] = numOfPips;
@@ -137,13 +196,13 @@ public class TelegramChat implements Runnable{
 		for (int i = 0; i < profiles.length; i++) {
 			sendMessage(userId,
 					"מה השם של הבן אדם ה-"+(i+1)+"?");
-			getUpdates(-1);
-			name=getMsg(0);
+			getUpdates();
+			name=getMsg();
 
 			sendMessage(userId,
 					"כמה העדפה יש לאדם ה-"+(i+1)+"? (מ-0 עד 10)");
-			getUpdates(-1);
-			priority=Float.valueOf(getMsg(0))/10;
+			getUpdates();
+			priority=Float.valueOf(getMsg())/10;
 
 
 			if (range==null || range.length==1) {
@@ -152,14 +211,14 @@ public class TelegramChat implements Runnable{
 			} else {
 				sendMessage(userId,
 						"באיזו עמדה האדם ה-"+(i+1)+" מעדיף לשמור? (מ-0 עד "+(range.length-1)+")");
-				getUpdates(-1);
-				preference[0]=Integer.valueOf(getMsg(0));
+				getUpdates();
+				preference[0]=Integer.valueOf(getMsg());
 			}
 
 			sendMessage(userId,
 					"באיזו שעה האדם ה-"+(i+1)+"מעדיף לשמור? (מ-0 עד "+(range[preference[0]]-1)+")");
-			getUpdates(-1);
-			preference[1]=Integer.valueOf(getMsg(0));
+			getUpdates();
+			preference[1]=Integer.valueOf(getMsg());
 
 			profiles[i] = new Profile(name, priority, preference);
 			sendMessage(userId,
@@ -170,34 +229,44 @@ public class TelegramChat implements Runnable{
 
 		sendOptions("זהו!, הכל שמור אצלי!🔐");
 
-		savedProfiles=profiles;
-		savedRange=range;
+		data.savedProfiles=profiles;
+		data.savedRange=range;
+	}
+
+	private void getUpdates() {
+		// TODO Auto-generated method stub
+		try {
+			wait();
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 	private void calcSavedProfiles() throws IOException {
 		sendMessage(userId,
 				"תן לי כמה רגעים ואני יחשב את הרשימה האופטימלית🤓");
 		ScheduleGenerator scheduleGenerator = new ScheduleGenerator();
-		Dna bestDna = scheduleGenerator.calculateBestSchedule(new Schedule(savedProfiles, savedRange));
-		savedProfiles = bestDna.getGenome().getProfiles();
+		Dna bestDna = scheduleGenerator.calculateBestSchedule(new Schedule(data.savedProfiles, data.savedRange));
+		data.savedProfiles = bestDna.getGenome().getProfiles();
 		sendMessage(userId,
 				bestDna.getGenome().hebtoString());
 	}
 
 	private void manualEdit() throws IOException {
 		String strNames = "";
-		for (int i = 0; i < savedProfiles.length-1; i++) {
-			strNames+="[{\"text\":\""+URLEncoder.encode(savedProfiles[i].getName(), StandardCharsets.UTF_8)+"\"}],";
+		for (int i = 0; i < data.savedProfiles.length-1; i++) {
+			strNames+="[{\"text\":\""+URLEncoder.encode(data.savedProfiles[i].getName(), StandardCharsets.UTF_8)+"\"}],";
 		}
-		strNames+="[{\"text\":\""+URLEncoder.encode(savedProfiles[savedProfiles.length-1].getName(), StandardCharsets.UTF_8)+"\"}]";
+		strNames+="[{\"text\":\""+URLEncoder.encode(data.savedProfiles[data.savedProfiles.length-1].getName(), StandardCharsets.UTF_8)+"\"}]";
 
 		sendMessage(userId,
 				"בחר למי לבצע שינוי במקלדת המותאמת האישית!👪",
 				"reply_markup={\"keyboard\":["+strNames+"]}");
 
-		getUpdates(-1);
+		getUpdates();
 
-		String name=getMsg(0);
+		String name=getMsg();
 
 		sendMessage(userId,
 				"מצויין😃,עכשיו תבחר מה אתה רוצה לשנות!📊",
@@ -210,35 +279,35 @@ public class TelegramChat implements Runnable{
 						"[{\"text\":\""+URLEncoder.encode("שעה סופית", StandardCharsets.UTF_8)+"\"}]"+
 				"]}");
 
-		getUpdates(-1);
+		getUpdates();
 
-		switch (getMsg(0).toLowerCase()) {
+		switch (getMsg().toLowerCase()) {
 		case "שם":
-			for (int i = 0; i < savedProfiles.length; i++) {
-				if (savedProfiles[i].getName().equals(name)) {
+			for (int i = 0; i < data.savedProfiles.length; i++) {
+				if (data.savedProfiles[i].getName().equals(name)) {
 					sendMessage(userId,
 							"עכשיו תשלח את השם החדש בשביל "+name,
 							"reply_markup={\"remove_keyboard\":true}");
-					getUpdates(-1);
+					getUpdates();
 
-					savedProfiles[i].setName(getMsg(0));
+					data.savedProfiles[i].setName(getMsg());
 
 					sendMessage(userId,
-							name+" שונה ל"+getMsg(0)+"👨");
+							name+" שונה ל"+getMsg()+"👨");
 					return;
 				}
 			}
 			break;
 
 		case "העדפה":
-			for (int i = 0; i < savedProfiles.length; i++) {
-				if (savedProfiles[i].getName().equals(name)) {
+			for (int i = 0; i < data.savedProfiles.length; i++) {
+				if (data.savedProfiles[i].getName().equals(name)) {
 					sendMessage(userId,
 							"עכשיו תשלח את ההעדפה החדשה בשביל "+name,
 							"reply_markup={\"remove_keyboard\":true}");
-					getUpdates(-1);
+					getUpdates();
 
-					savedProfiles[i].setPriority(Float.valueOf(getMsg(0)));
+					data.savedProfiles[i].setPriority(Float.valueOf(getMsg()));
 
 					sendMessage(userId,
 							"הפעולה הושלמה בהצלחה🤖");
@@ -248,14 +317,14 @@ public class TelegramChat implements Runnable{
 			break;
 
 		case "עמדה מועדפת":
-			for (int i = 0; i < savedProfiles.length; i++) {
-				if (savedProfiles[i].getName().equals(name)) {
+			for (int i = 0; i < data.savedProfiles.length; i++) {
+				if (data.savedProfiles[i].getName().equals(name)) {
 					sendMessage(userId,
 							"עכשיו תשלח את העמדה החדשה בשביל "+name,
 							"reply_markup={\"remove_keyboard\":true}");
-					getUpdates(-1);
+					getUpdates();
 
-					savedProfiles[i].setPreference(new int[] {Integer.valueOf(getMsg(0)), savedProfiles[i].getPreference()[1]});
+					data.savedProfiles[i].setPreference(new int[] {Integer.valueOf(getMsg()), data.savedProfiles[i].getPreference()[1]});
 
 					sendMessage(userId,
 							"הפעולה הושלמה בהצלחה🤖");
@@ -265,14 +334,14 @@ public class TelegramChat implements Runnable{
 			break;
 
 		case "שעה מועדפת":
-			for (int i = 0; i < savedProfiles.length; i++) {
-				if (savedProfiles[i].getName().equals(name)) {
+			for (int i = 0; i < data.savedProfiles.length; i++) {
+				if (data.savedProfiles[i].getName().equals(name)) {
 					sendMessage(userId,
 							"עכשיו תשלח את השעה החדשה בשביל "+name,
 							"reply_markup={\"remove_keyboard\":true}");
-					getUpdates(-1);
+					getUpdates();
 
-					savedProfiles[i].setPreference(new int[] {savedProfiles[i].getPreference()[0], Integer.valueOf(getMsg(0))});
+					data.savedProfiles[i].setPreference(new int[] {data.savedProfiles[i].getPreference()[0], Integer.valueOf(getMsg())});
 
 					sendMessage(userId,
 							"הפעולה הושלמה בהצלחה🤖");
@@ -283,14 +352,14 @@ public class TelegramChat implements Runnable{
 
 		case "עמדה סופית":
 			//TODO MAKE SURE YOU NOTICE THE USER AND SWAP THE STATION WITH SOMNE ELSE!!!
-			for (int i = 0; i < savedProfiles.length; i++) {
-				if (savedProfiles[i].getName().equals(name)) {
+			for (int i = 0; i < data.savedProfiles.length; i++) {
+				if (data.savedProfiles[i].getName().equals(name)) {
 					sendMessage(userId,
 							"עכשיו תשלח את העמדה החדשה בשביל "+name,
 							"reply_markup={\"remove_keyboard\":true}");
-					getUpdates(-1);
+					getUpdates();
 
-					savedProfiles[i].setPost(new int[] {Integer.valueOf(getMsg(0)), savedProfiles[i].getPost()[1]});
+					data.savedProfiles[i].setPost(new int[] {Integer.valueOf(getMsg()), data.savedProfiles[i].getPost()[1]});
 
 					sendMessage(userId,
 							"הפעולה הושלמה בהצלחה🤖");
@@ -301,14 +370,14 @@ public class TelegramChat implements Runnable{
 
 		case "שעה סופית":
 			//TODO MAKE SURE YOU NOTICE THE USER AND SWAP THE STATION WITH SOMNE ELSE!!!
-			for (int i = 0; i < savedProfiles.length; i++) {
-				if (savedProfiles[i].getName().equals(name)) {
+			for (int i = 0; i < data.savedProfiles.length; i++) {
+				if (data.savedProfiles[i].getName().equals(name)) {
 					sendMessage(userId,
 							"עכשיו תשלח את השעה החדשה בשביל "+name,
 							"reply_markup={\"remove_keyboard\":true}");
-					getUpdates(-1);
+					getUpdates();
 
-					savedProfiles[i].setPost(new int[] {savedProfiles[i].getPost()[0], Integer.valueOf(getMsg(0))});
+					data.savedProfiles[i].setPost(new int[] {data.savedProfiles[i].getPost()[0], Integer.valueOf(getMsg())});
 
 					sendMessage(userId,
 							"הפעולה הושלמה בהצלחה🤖");

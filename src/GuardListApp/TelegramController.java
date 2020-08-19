@@ -2,10 +2,14 @@ package GuardListApp;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.Thread.State;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Iterator;
 
 import org.json.JSONObject;
 
@@ -26,8 +30,8 @@ public class TelegramController {
 	public static Profile[] savedProfiles=null;
 	private static int[] savedRange;
 	private static HashMap<Integer, ProfileData> profilesMap = new HashMap<Integer, ProfileData>();
+	private static ArrayList<Pair<TelegramChat, Thread>> activeChats = new ArrayList<Pair<TelegramChat, Thread>>();
 
-	
 	/**
 	 * sends https request to telegram server
 	 * @param method telegram api method string
@@ -79,7 +83,6 @@ public class TelegramController {
 				idIncrement();
 				lastUserId = ((JSONObject) ((JSONObject) ((JSONObject) ret.getJSONArray("result")
 						.get(ret.getJSONArray("result").length()-1)).get("message")).get("from")).getInt("id");
-				setUser(lastUserId);
 				synchronized (data) {
 					data.unread.add(ret);
 				}
@@ -128,7 +131,7 @@ public class TelegramController {
 				get("message")).getString("text");
 	}
 
-	private static void setUser(int userId) {
+	/*private static void setUser(int userId) {
 		//TODO improve memory efficiency by saving map object to temporary variable
 		if (profilesMap.containsKey(userId)) {
 			savedProfiles = profilesMap.get(userId).data.getSavedProfiles();
@@ -138,7 +141,7 @@ public class TelegramController {
 			savedProfiles=null;
 			savedRange=null;
 		}
-	}
+	}*/
 
 	/**
 	 * interactively makes On-The-Fly schedule with a chat user
@@ -373,16 +376,52 @@ public class TelegramController {
 	}
 
 	public static void main(String[] args) throws IOException {
-		data = new TelegramData();
+		data = new TelegramData(); //contains data for the bot
 		System.out.println("begin");
 		while (true) {
 			getUpdates(-1);
-			
-			System.out.println(ret);
-			for (Object update : ret.getJSONArray("result")) {
-				System.out.println(((JSONObject) update).query("/message/text"));
+			for (int i=0; i<activeChats.size(); i++) {
+				if (!activeChats.get(i).key.isRunning) {
+					try {
+						activeChats.get(i).value.join(1000);
+						activeChats.remove(i);
+					} catch (InterruptedException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}
 			}
-			
+			System.out.println(ret); //prints the 1st update
+			for (Object updateObj : ret.getJSONArray("result")) { //loops througth all update objects
+				JSONObject update = (JSONObject) updateObj; //convert from Object to JSONObject
+				int userId = (int) update.query("/message/from/id"); //gets the user id
+
+				boolean found = false;
+				for (int i = 0; i < activeChats.size(); i++) { //check if an active chat is waiting for a message from that user
+					if(activeChats.get(i).key.getUserId() == userId) {
+						synchronized (activeChats.get(i).key.unread) { //if so notify the chat that it has the new message
+							activeChats.get(i).key.unread.add(update); 
+						}
+						if(activeChats.get(i).value.getState()==State.WAITING) {
+							activeChats.get(i).value.notify();
+						}
+						found=true;
+						break;
+					}
+				}
+				if (!found) { //if no active chat is waiting for a message from that user create a new chat
+					if (!profilesMap.containsKey(userId)) { //if there is no data about the user
+						profilesMap.put(userId, new ProfileData(new Profile[0],
+								new Profile((String)update.query("/message/from/first_name")+" "+(String)update.query("/message/from/last_name"),0f,null), 
+								null, false));//TODO improve this
+					}
+					TelegramChat chat = new TelegramChat(userId, update, profilesMap.get(userId), data); //make the new chat
+					Thread chatThread = new Thread(chat);
+					chatThread.start();
+					activeChats.add(new Pair<TelegramChat, Thread>(chat, chatThread));
+				}
+			}
+
 			/*switch (getMsg(0).toLowerCase()) {
 			case "רשימה חדשה":
 				try {
@@ -430,7 +469,6 @@ public class TelegramController {
 				sendOptions("נסה להשתמש במקלדת המותאמת אישית כדי לשלוח פקודה שאני יבין👇");
 				break;
 			}*/
-			profilesMap.put(lastUserId, new TelegramController().new Pair(savedProfiles, savedRange));
 		}
 	}
 

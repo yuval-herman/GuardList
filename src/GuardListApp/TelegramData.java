@@ -5,7 +5,6 @@ import java.util.Stack;
 
 import org.json.JSONObject;
 
-import GuardListApp.TelegramController.Pair;
 import dna.Profile;
 
 public class TelegramData {
@@ -15,8 +14,7 @@ public class TelegramData {
 	public int lastUserId=0;
 	public JSONObject ret; //last retrieved message from the server
 	public Profile[] savedProfiles=null;
-	private int[] savedRange;
-	private HashMap<Integer, Pair> profilesMap = new HashMap<Integer, TelegramController.Pair>();
+	public int[] savedRange;
 	public Stack<JSONObject> unread = new Stack<JSONObject>();
 
 	
