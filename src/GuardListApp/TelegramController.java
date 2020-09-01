@@ -403,7 +403,9 @@ public class TelegramController {
 							activeChats.get(i).key.unread.add(update); 
 						}
 						if(activeChats.get(i).value.getState()==State.WAITING) {
-							activeChats.get(i).value.notify();
+							synchronized (activeChats.get(i).key.lockObject) {
+								activeChats.get(i).key.lockObject.notify();
+							}
 						}
 						found=true;
 						break;

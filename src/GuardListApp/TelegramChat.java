@@ -3,6 +3,10 @@ package GuardListApp;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.Stack;
 
 import org.json.JSONObject;
@@ -20,6 +24,7 @@ public class TelegramChat implements Runnable{
 	boolean isAdmin;
 	volatile boolean isRunning = true;
 	Profile[] connectedProfiles;
+	Object lockObject = new Object();
 
 	public int getUserId() {
 		return userId;
@@ -97,6 +102,21 @@ public class TelegramChat implements Runnable{
 				}
 			}
 			break;
+			
+		case "הוספת שעות לרשימה קיימת":
+			try {
+				addTimeToList();
+			} catch (Exception e) {
+				try {
+					sendMessage(userId,
+							"קרתה תקלה, נסה שוב🤪.",
+							"reply_markup={\"remove_keyboard\":true}");
+				} catch (IOException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+			}
+			break;
 
 		default:
 			try {
@@ -108,6 +128,43 @@ public class TelegramChat implements Runnable{
 			break;
 		}
 		exit();
+	}
+
+	private void addTimeToList() throws IOException, ParseException {
+		sendMessage(userId,"עכשיו שלח את הרשימה📜");
+		getUpdates();
+		String[] nameList = getMsg().split("\n");
+
+		sendMessage(userId,"עכשיו שלח את שעת ההתחלה של השמירות🕐");
+		getUpdates();
+		SimpleDateFormat dateFormater = new SimpleDateFormat("HH:mm");
+		Date startHour = dateFormater.parse(getMsg());
+		
+		sendMessage(userId,"עכשיו שלח את שעת הסיום של השמירות🕐");
+		getUpdates();
+		
+		Date endHour = dateFormater.parse(getMsg());;
+		if (endHour.getTime()<startHour.getTime()) {
+			Calendar c = Calendar.getInstance();
+			c.setTime(endHour);
+			c.add(Calendar.DAY_OF_MONTH, 1);
+			endHour=c.getTime();
+		}
+		
+				
+		float guardSessionHours = Math.abs((startHour.getTime() - endHour.getTime())/1000/60/60);
+		float sessionTimeHours = Math.abs((startHour.getTime() - endHour.getTime())/nameList.length/1000f/60f/60f);
+		sendMessage(userId,"זמן כל השמירה: "+guardSessionHours+"\nזמן כל שמירה: "+sessionTimeHours);
+		
+		String finishedList = "";
+		
+		for (int i = 0; i < nameList.length; i++) {
+			finishedList+= dateFormater.format(startHour.getTime()+
+					(Math.abs(startHour.getTime() - endHour.getTime())/nameList.length)*i);
+			finishedList+= " " + nameList[i] + "\n";
+		}
+		sendMessage(userId, finishedList);
+		sendMessage(userId, "בהצלחה!");
 	}
 
 	private void exit() {
@@ -133,6 +190,7 @@ public class TelegramChat implements Runnable{
 		+"&reply_markup={\"keyboard\":["
 		+ "[{\"text\":\""+URLEncoder.encode("רשימה חדשה", StandardCharsets.UTF_8)+"\"}],"
 		+ "[{\"text\":\""+URLEncoder.encode("שינוי ידני", StandardCharsets.UTF_8)+"\"}],"
+		+ "[{\"text\":\""+URLEncoder.encode("הוספת שעות לרשימה קיימת", StandardCharsets.UTF_8)+"\"}],"
 		+ "[{\"text\":\""+URLEncoder.encode("חישוב רשימת שמות", StandardCharsets.UTF_8)+"\"}]"
 		+ "]}");
 	}
@@ -235,11 +293,16 @@ public class TelegramChat implements Runnable{
 
 	private void getUpdates() {
 		// TODO Auto-generated method stub
-		try {
-			wait();
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		while (unread.isEmpty()) {
+			synchronized (lockObject) {
+				try {
+				lockObject.wait();
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			}
+			
 		}
 	}
 
