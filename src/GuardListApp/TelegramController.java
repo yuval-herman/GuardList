@@ -73,11 +73,20 @@ public class TelegramController {
 	 * @return return json formatted answer from server, null if timed out
 	 * @throws IOException
 	 */
-	public static void getUpdates(int timeOut) throws IOException {
+	public static void getUpdates(int timeOut) {
 		do {
-			JSONObject ret = httpsRequstMethod(
-					"getUpdates", "timeout="+(timeOut<0?(60*60):timeOut),
-					"offset=" + (lastupdateId!=0 ? String.valueOf(lastupdateId+1) : "0"));
+			JSONObject ret = null;
+			while (ret==null) {
+				try {
+					ret = httpsRequstMethod(
+							"getUpdates", "timeout="+(timeOut<0?(60*60):timeOut),
+							"offset=" + (lastupdateId!=0 ? String.valueOf(lastupdateId+1) : "0"));
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace(System.out);
+					e.printStackTrace();
+				}
+			}
 			if (ret.getJSONArray("result").length()!=0) {
 				TelegramController.ret = ret;
 				idIncrement();
