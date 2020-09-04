@@ -200,7 +200,8 @@ public class TelegramChat implements Runnable{
 
 			switch (lstmsg) {
 			case "לפי שעת התחלה וסוף":
-				sendMessage(userId,"עכשיו שלח את שעת הסיום של השמירות🕐");
+				sendMessage(userId,"עכשיו שלח את שעת הסיום של השמירות🕐",
+						"reply_markup={\"remove_keyboard\":true}");
 				getUpdates();
 
 				endHour = dateFormater.parse(getMsg());
@@ -228,7 +229,7 @@ public class TelegramChat implements Runnable{
 				}
 				for (int i = 0; i < loops; i++) {
 					for (int i1 = 0; i1 < nameList.length; i1++) {
-						finishedList+= dateFormater.format(startHour.getTime()+(maxMinutes*1000*60)*i1);
+						finishedList+= dateFormater.format((startHour.getTime()*(i+1))+(maxMinutes*1000*60*i1)+(maxMinutes*1000*60*i)*2);
 						finishedList+= " " + nameList[i1] + "\n";
 					}
 				}
@@ -300,7 +301,7 @@ public class TelegramChat implements Runnable{
 			int BlockSize = 0;
 			while (tok.hasMoreElements()) {
 				while(tok.hasMoreElements()&&BlockSize < 4000) {
-					temp = tok.nextToken();
+					temp += tok.nextToken()+"\n";
 					BlockSize = temp.length()+1;
 				}
 				String[] args2 = new String[args.length + 2];
