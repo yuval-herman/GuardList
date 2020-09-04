@@ -123,27 +123,18 @@ public class Population implements Serializable{//Comparator<Dna>,
 		Profile[] tempProfiles = dna.getGenome().getProfiles();
 		Arrays.sort(tempProfiles);
 		for (Profile profile : tempProfiles) {
-			Date displayTimePost = new
+			new
 					Date((beginDate.getTime()+ 3600000*(timeScale/range[profile.getPost()[0]]*
 							profile.getPost()[1])));
-			Date displayTimePreference = new
+			new
 					Date((beginDate.getTime()+ 3600000*(timeScale/range[profile.getPreference()[0]]*
 							profile.getPreference()[1])));
-//			System.out.print(profile.getName()+"    |    prefer: ");
-//			System.out.print(profile.getPreference()[0]+":"+profile.getPreference()[1]+"->"+displayTimePreference.getHours()+":"+displayTimePreference.getMinutes()+"    |    post: ");
-//			System.out.println(profile.getPost()[0]+":"+profile.getPost()[1]+"->"+displayTimePost.getHours()+":"+displayTimePost.getMinutes());
 		}
-		int algPosts = 0;
-		int algLocs = 0;
-		int algPostLocs = 0;
 		for (int i = 0; i < tempProfiles.length; i++) {
 			if (tempProfiles[i].getPreference()[0] == tempProfiles[i].getPost()[0]) {
-				algPosts++;
 			}
 			if (tempProfiles[i].getPreference()[1] == tempProfiles[i].getPost()[1]) {
-				algLocs++;
 			}if (tempProfiles[i].getPreference()[0] == tempProfiles[i].getPost()[0] && tempProfiles[i].getPreference()[1] == tempProfiles[i].getPost()[1]) {
-				algPostLocs++;
 			}
 		}
 //		System.out.println("\naligned posts: "+algPosts);
@@ -210,11 +201,8 @@ public class Population implements Serializable{//Comparator<Dna>,
 	}
 
 	public void printEvaluate() {
-		int counter = 0;
 		for (Dna dna : population) {
 			if(dna.evaluate()) {
-//				System.out.println(dna);
-				counter++;
 			}
 		}
 //		System.out.println(counter + " possible schedules");

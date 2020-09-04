@@ -8,6 +8,7 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Stack;
+import java.util.StringTokenizer;
 
 import org.json.JSONObject;
 
@@ -102,7 +103,7 @@ public class TelegramChat implements Runnable{
 				}
 			}
 			break;
-			
+
 		case "הוספת שעות לרשימה קיימת":
 			try {
 				addTimeToList();
@@ -131,40 +132,124 @@ public class TelegramChat implements Runnable{
 	}
 
 	private void addTimeToList() throws IOException, ParseException {
-		sendMessage(userId,"עכשיו שלח את הרשימה📜");
+		sendMessage(userId,"מצב פשוט או מתקדם?", "reply_markup={\"keyboard\":[["
+				+ "{\"text\":\""+URLEncoder.encode("מתקדם", StandardCharsets.UTF_8)+"\"},"
+				+ "{\"text\":\""+URLEncoder.encode("פשוט", StandardCharsets.UTF_8)+"\"}"
+				+ "]]}");
+		getUpdates();
+
+		String mode = getMsg();
+		if (!mode.equals("פשוט" ) && !mode.equals("מתקדם")) {
+			sendMessage(userId,"קודם תבחר מצב פשוט או מתקדם🤨");
+			sendOptions("מה לעשות?");
+			return;
+		}
+
+		sendMessage(userId,"עכשיו שלח את הרשימה📜",
+				"reply_markup={\"remove_keyboard\":true}");
 		getUpdates();
 		String[] nameList = getMsg().split("\n");
 
-		sendMessage(userId,"עכשיו שלח את שעת ההתחלה של השמירות🕐");
+		sendMessage(userId,"שלח לי את שעת ההתחלה של השמירות🕐");
 		getUpdates();
 		SimpleDateFormat dateFormater = new SimpleDateFormat("HH:mm");
 		Date startHour = dateFormater.parse(getMsg());
-		
-		sendMessage(userId,"עכשיו שלח את שעת הסיום של השמירות🕐");
-		getUpdates();
-		
-		Date endHour = dateFormater.parse(getMsg());;
-		if (endHour.getTime()<startHour.getTime()) {
-			Calendar c = Calendar.getInstance();
-			c.setTime(endHour);
-			c.add(Calendar.DAY_OF_MONTH, 1);
-			endHour=c.getTime();
-		}
-		
-				
-		float guardSessionHours = Math.abs((startHour.getTime() - endHour.getTime())/1000/60/60);
-		float sessionTimeHours = Math.abs((startHour.getTime() - endHour.getTime())/nameList.length/1000f/60f/60f);
-		sendMessage(userId,"זמן כל השמירה: "+guardSessionHours+"\nזמן כל שמירה: "+sessionTimeHours);
-		
+		Date endHour = null;
 		String finishedList = "";
-		
-		for (int i = 0; i < nameList.length; i++) {
-			finishedList+= dateFormater.format(startHour.getTime()+
-					(Math.abs(startHour.getTime() - endHour.getTime())/nameList.length)*i);
-			finishedList+= " " + nameList[i] + "\n";
+		switch (mode) {
+		case "פשוט":
+			sendMessage(userId,"עכשיו שלח את שעת הסיום של השמירות🕐");
+			getUpdates();
+
+			endHour = dateFormater.parse(getMsg());
+
+			if (endHour.getTime()<startHour.getTime()) { //add one day if the end hour is smaller then start hour
+				Calendar c = Calendar.getInstance();     //i.e the time is earlier the the start
+				c.setTime(endHour);
+				c.add(Calendar.DAY_OF_MONTH, 1);
+				endHour=c.getTime();
+			}
+
+
+			float guardSessionHours = Math.abs((startHour.getTime() - endHour.getTime())/1000f/60f/60f);
+			float sessionTimeHours = Math.abs((startHour.getTime() - endHour.getTime())/nameList.length/1000f/60f/60f);
+			sendMessage(userId,"זמן כל השמירה: "+guardSessionHours+"\nזמן כל שמירה: "+sessionTimeHours);
+
+			finishedList = "";
+
+			for (int i = 0; i < nameList.length; i++) {
+				finishedList+= dateFormater.format(startHour.getTime()+
+						(Math.abs(startHour.getTime() - endHour.getTime())/nameList.length)*i);
+				finishedList+= " " + nameList[i] + "\n";
+			}
+			break;
+
+		case "מתקדם":
+			sendMessage(userId,"(בדקות)מה הזמן המקסימלי לשמירה אחת?⏲️");
+			getUpdates();
+
+			int maxMinutes = Integer.valueOf(getMsg());
+
+			sendMessage(userId,"לפי שעת התחלה וסוף או לפי זמן שמירה?", "reply_markup={\"keyboard\":[["
+					+ "{\"text\":\""+URLEncoder.encode("לפי שעת התחלה וסוף", StandardCharsets.UTF_8)+"\"},"
+					+ "{\"text\":\""+URLEncoder.encode("לפי זמן שמירה", StandardCharsets.UTF_8)+"\"}"
+					+ "]]}");
+			getUpdates();
+			String lstmsg = getMsg();
+			mode += "\n" + lstmsg;
+
+			switch (lstmsg) {
+			case "לפי שעת התחלה וסוף":
+				sendMessage(userId,"עכשיו שלח את שעת הסיום של השמירות🕐");
+				getUpdates();
+
+				endHour = dateFormater.parse(getMsg());
+
+				if (endHour.getTime()<startHour.getTime()) { //add one day if the end hour is smaller then start hour
+					Calendar c = Calendar.getInstance();     //i.e the time is earlier the the start
+					c.setTime(endHour);
+					c.add(Calendar.DAY_OF_MONTH, 1);
+					endHour=c.getTime();
+				}
+
+				int loops = 1;
+				if (Math.abs((startHour.getTime() - endHour.getTime())/nameList.length/1000f/60f)>maxMinutes) { //calculate the amount of loops needed to stay below max minutes
+					float timeMinutes = Math.abs((startHour.getTime() - endHour.getTime())/1000f/60f);
+					int i=0;
+					while (timeMinutes%maxMinutes*nameList.length>1) {
+						System.out.println("loops " + timeMinutes/(maxMinutes*nameList.length));
+						System.out.println("module " + timeMinutes%(maxMinutes*nameList.length));
+						System.out.println("maxMinutes " + maxMinutes);
+						i++;
+						System.out.println(i);
+						maxMinutes-=1/60;
+					}
+					loops = Math.round(timeMinutes/(maxMinutes*nameList.length));
+				}
+				for (int i = 0; i < loops; i++) {
+					for (int i1 = 0; i1 < nameList.length; i1++) {
+						finishedList+= dateFormater.format(startHour.getTime()+(maxMinutes*1000*60)*i1);
+						finishedList+= " " + nameList[i1] + "\n";
+					}
+				}
+				break;
+
+			case "לפי זמן שמירה":
+
+				break;
+
+			default:
+				break;
+			}
+			break;
+
+		default:
+
+			break;
 		}
 		sendMessage(userId, finishedList);
-		sendMessage(userId, "בהצלחה!");
+		sendMessage(userId, "בהצלחה!",
+				"reply_markup={\"remove_keyboard\":true}");
 	}
 
 	private void exit() {
@@ -209,11 +294,31 @@ public class TelegramChat implements Runnable{
 	 * @throws IOException
 	 */
 	public JSONObject sendMessage(int chat_id, String text, String... args) throws IOException {
-		String[] args2 = new String[args.length + 2];
-		System.arraycopy(args, 0, args2, 0, args.length);
-		args2[args2.length-2] = "chat_id="+chat_id;
-		args2[args2.length-1] = "text="+URLEncoder.encode(text, StandardCharsets.UTF_8);
-		return TelegramApi.httpsRequstMethod(data.getRequestUrl(), "sendMessage", args2);
+		if (text.length()>4000) {
+			StringTokenizer tok = new StringTokenizer(text, "\n");
+			String temp = "";
+			int BlockSize = 0;
+			while (tok.hasMoreElements()) {
+				while(tok.hasMoreElements()&&BlockSize < 4000) {
+					temp = tok.nextToken();
+					BlockSize = temp.length()+1;
+				}
+				String[] args2 = new String[args.length + 2];
+				System.arraycopy(args, 0, args2, 0, args.length);
+				args2[args2.length-2] = "chat_id="+chat_id;
+				args2[args2.length-1] = "text="+URLEncoder.encode(temp, StandardCharsets.UTF_8);
+				TelegramApi.httpsRequstMethod(data.getRequestUrl(), "sendMessage", args2);
+				BlockSize=0;
+				temp="";
+			}
+		} else {
+			String[] args2 = new String[args.length + 2];
+			System.arraycopy(args, 0, args2, 0, args.length);
+			args2[args2.length-2] = "chat_id="+chat_id;
+			args2[args2.length-1] = "text="+URLEncoder.encode(text, StandardCharsets.UTF_8);
+			return TelegramApi.httpsRequstMethod(data.getRequestUrl(), "sendMessage", args2);
+		}
+		return null;
 	}
 
 	private void saveProfiles() throws IOException {
@@ -296,13 +401,13 @@ public class TelegramChat implements Runnable{
 		while (unread.isEmpty()) {
 			synchronized (lockObject) {
 				try {
-				lockObject.wait();
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+					lockObject.wait();
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 			}
-			}
-			
+
 		}
 	}
 

@@ -1,6 +1,5 @@
 package dna;
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Random;
 
@@ -95,18 +94,18 @@ public class Dna implements Serializable, Comparable<Dna>{
 		return newProfileArr;
 	}*/
 	
-	private boolean contain(Profile[] newProfileArr, Profile profile) {
-		for (int i = 0; i < newProfileArr.length; i++) {
-			try {
-				if (Arrays.equals(newProfileArr[i].getPost(), profile.getPost())) { 
-				return true; 
-				}
-			} catch (Exception e) {
-				continue;
-			}
-		}
-		return false;
-	}
+//	private boolean contain(Profile[] newProfileArr, Profile profile) {
+//		for (int i = 0; i < newProfileArr.length; i++) {
+//			try {
+//				if (Arrays.equals(newProfileArr[i].getPost(), profile.getPost())) { 
+//				return true; 
+//				}
+//			} catch (Exception e) {
+//				continue;
+//			}
+//		}
+//		return false;
+//	}
 
 	public Dna duplicate() {
 		return new Dna(fitness, genome.duplicate());

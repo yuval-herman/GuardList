@@ -39,7 +39,6 @@ public class ScheduleGenerator {
 		population.generatePopulation(popSize, schedule);
 
 		int i=0;
-		boolean expresion = true;
 		do {
 //			System.out.println("generation->" + i);
 			//calculate fitness

@@ -1,10 +1,7 @@
 package GuardListApp;
 
-import java.util.HashMap;
 import java.util.Stack;
-
 import org.json.JSONObject;
-
 import dna.Profile;
 
 public class TelegramData {
@@ -12,12 +9,11 @@ public class TelegramData {
 	private String requestUrl = "https://api.telegram.org/bot"+token+"/";
 	private int lastupdateId=0;
 	public int lastUserId=0;
-	public JSONObject ret; //last retrieved message from the server
+	public JSONObject ret; //last retrieved update from the server
 	public Profile[] savedProfiles=null;
 	public int[] savedRange;
 	public Stack<JSONObject> unread = new Stack<JSONObject>();
 
-	
 	public int getLastupdateId() {
 		return lastupdateId;
 	}

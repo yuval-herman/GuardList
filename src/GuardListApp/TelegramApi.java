@@ -16,9 +16,9 @@ public class TelegramApi {
 	 * @param messageNum number of message out of returned array from server
 	 * @return text from message object
 	 */
-	private static String getMsgText(JSONObject updateObj) {
-		return (String) updateObj.query("/message/text");
-	}
+//	private static String getMsgText(JSONObject updateObj) {
+//		return (String) updateObj.query("/message/text");
+//	}
 	
 	/**
 	 * sends https request to telegram server

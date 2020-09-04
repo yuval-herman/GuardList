@@ -7,15 +7,12 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Iterator;
 
 import org.json.JSONObject;
 
 import dna.Dna;
 import dna.Profile;
-import dna.Schedule;
 
 
 
@@ -28,7 +25,6 @@ public class TelegramController {
 	public static int lastUserId=0;
 	public static JSONObject ret; //last retrieved message from the server
 	public static Profile[] savedProfiles=null;
-	private static int[] savedRange;
 	private static HashMap<Integer, ProfileData> profilesMap = new HashMap<Integer, ProfileData>();
 	private static ArrayList<Pair<TelegramChat, Thread>> activeChats = new ArrayList<Pair<TelegramChat, Thread>>();
 
@@ -134,11 +130,11 @@ public class TelegramController {
 	 * @param messageNum number of message out of returned array from server
 	 * @return text from message object
 	 */
-	private static String getMsg(int messageNum) {
-		return ((JSONObject) ((JSONObject) ret.getJSONArray("result")
-				.get(messageNum)).
-				get("message")).getString("text");
-	}
+//	private static String getMsg(int messageNum) {
+//		return ((JSONObject) ((JSONObject) ret.getJSONArray("result")
+//				.get(messageNum)).
+//				get("message")).getString("text");
+//	}
 
 	/*private static void setUser(int userId) {
 		//TODO improve memory efficiency by saving map object to temporary variable
@@ -156,233 +152,233 @@ public class TelegramController {
 	 * interactively makes On-The-Fly schedule with a chat user
 	 * @throws IOException
 	 */
-	private static void makeSchedule() throws IOException {
-		saveProfiles();
-		calcSavedProfiles();
-	}
+//	private static void makeSchedule() throws IOException {
+//		saveProfiles();
+//		calcSavedProfiles();
+//	}
 
-	private static void saveProfiles() throws IOException {
-		sendMessage(lastUserId,
-				"כמה אנשים נמצאים?",
-				"reply_markup={\"remove_keyboard\":true}");
+//	private static void saveProfiles() throws IOException {
+//		sendMessage(lastUserId,
+//				"כמה אנשים נמצאים?",
+//				"reply_markup={\"remove_keyboard\":true}");
+//
+//		getUpdates(-1);
+//
+//		int numOfPips = Integer.valueOf(getMsg(0));
+//
+//		sendMessage(lastUserId,
+//				"וכמה עמדות יש?🏠");
+//
+//		getUpdates(-1);
+//		int[] range = new int[Integer.valueOf(getMsg(0))];
+//
+//		if (range.length!=1) {
+//			for (int i = 0; i < range.length; i++) {
+//				sendMessage(lastUserId,
+//						"כמה אנשים צריכים לאייש את עמדה מספר "+(i+1)+"?");
+//
+//				getUpdates(-1);
+//				range[i] = Integer.valueOf(getMsg(0));
+//			}
+//		} else {
+//			range[0] = numOfPips;
+//		}
+//
+//		sendMessage(lastUserId,
+//				"אוקי מצויין!😃 עכשיו נמלא את הפרטים.");
+//
+//		String name = null;
+//		float priority = 0;
+//		int[] preference = new int[2];
+//		Profile[] profiles = new Profile[numOfPips];
+//
+//		for (int i = 0; i < profiles.length; i++) {
+//			sendMessage(lastUserId,
+//					"מה השם של הבן אדם ה-"+(i+1)+"?");
+//			getUpdates(-1);
+//			name=getMsg(0);
+//
+//			sendMessage(lastUserId,
+//					"כמה העדפה יש לאדם ה-"+(i+1)+"? (מ-0 עד 10)");
+//			getUpdates(-1);
+//			priority=Float.valueOf(getMsg(0))/10;
+//
+//
+//			if (range==null || range.length==1) {
+//				preference[0]=0;
+//				range = new int[] {numOfPips};
+//			} else {
+//				sendMessage(lastUserId,
+//						"באיזו עמדה האדם ה-"+(i+1)+" מעדיף לשמור? (מ-0 עד "+(range.length-1)+")");
+//				getUpdates(-1);
+//				preference[0]=Integer.valueOf(getMsg(0));
+//			}
+//
+//			sendMessage(lastUserId,
+//					"באיזו שעה האדם ה-"+(i+1)+"מעדיף לשמור? (מ-0 עד "+(range[preference[0]]-1)+")");
+//			getUpdates(-1);
+//			preference[1]=Integer.valueOf(getMsg(0));
+//
+//			profiles[i] = new Profile(name, priority, preference);
+//			sendMessage(lastUserId,
+//					"הנה הפרופיל לאדם ה"+i+"\n"+profiles[i].toString()+".");
+//			if (i+1!=profiles.length) sendMessage(lastUserId,
+//					"עכשיו בוא נמשיך להבא!😁");
+//		}
+//
+//		sendOptions("זהו!, הכל שמור אצלי!🔐");
+//
+//		savedProfiles=profiles;
+//		savedRange=range;
+//	}
 
-		getUpdates(-1);
+//	private static void calcSavedProfiles() throws IOException {
+//		sendMessage(lastUserId,
+//				"תן לי כמה רגעים ואני יחשב את הרשימה האופטימלית🤓");
+//		ScheduleGenerator scheduleGenerator = new ScheduleGenerator();
+//		Dna bestDna = scheduleGenerator.calculateBestSchedule(new Schedule(savedProfiles, savedRange));
+//		savedProfiles = bestDna.getGenome().getProfiles();
+//		sendMessage(lastUserId,
+//				bestDna.getGenome().hebtoString());
+//	}
 
-		int numOfPips = Integer.valueOf(getMsg(0));
-
-		sendMessage(lastUserId,
-				"וכמה עמדות יש?🏠");
-
-		getUpdates(-1);
-		int[] range = new int[Integer.valueOf(getMsg(0))];
-
-		if (range.length!=1) {
-			for (int i = 0; i < range.length; i++) {
-				sendMessage(lastUserId,
-						"כמה אנשים צריכים לאייש את עמדה מספר "+(i+1)+"?");
-
-				getUpdates(-1);
-				range[i] = Integer.valueOf(getMsg(0));
-			}
-		} else {
-			range[0] = numOfPips;
-		}
-
-		sendMessage(lastUserId,
-				"אוקי מצויין!😃 עכשיו נמלא את הפרטים.");
-
-		String name = null;
-		float priority = 0;
-		int[] preference = new int[2];
-		Profile[] profiles = new Profile[numOfPips];
-
-		for (int i = 0; i < profiles.length; i++) {
-			sendMessage(lastUserId,
-					"מה השם של הבן אדם ה-"+(i+1)+"?");
-			getUpdates(-1);
-			name=getMsg(0);
-
-			sendMessage(lastUserId,
-					"כמה העדפה יש לאדם ה-"+(i+1)+"? (מ-0 עד 10)");
-			getUpdates(-1);
-			priority=Float.valueOf(getMsg(0))/10;
-
-
-			if (range==null || range.length==1) {
-				preference[0]=0;
-				range = new int[] {numOfPips};
-			} else {
-				sendMessage(lastUserId,
-						"באיזו עמדה האדם ה-"+(i+1)+" מעדיף לשמור? (מ-0 עד "+(range.length-1)+")");
-				getUpdates(-1);
-				preference[0]=Integer.valueOf(getMsg(0));
-			}
-
-			sendMessage(lastUserId,
-					"באיזו שעה האדם ה-"+(i+1)+"מעדיף לשמור? (מ-0 עד "+(range[preference[0]]-1)+")");
-			getUpdates(-1);
-			preference[1]=Integer.valueOf(getMsg(0));
-
-			profiles[i] = new Profile(name, priority, preference);
-			sendMessage(lastUserId,
-					"הנה הפרופיל לאדם ה"+i+"\n"+profiles[i].toString()+".");
-			if (i+1!=profiles.length) sendMessage(lastUserId,
-					"עכשיו בוא נמשיך להבא!😁");
-		}
-
-		sendOptions("זהו!, הכל שמור אצלי!🔐");
-
-		savedProfiles=profiles;
-		savedRange=range;
-	}
-
-	private static void calcSavedProfiles() throws IOException {
-		sendMessage(lastUserId,
-				"תן לי כמה רגעים ואני יחשב את הרשימה האופטימלית🤓");
-		ScheduleGenerator scheduleGenerator = new ScheduleGenerator();
-		Dna bestDna = scheduleGenerator.calculateBestSchedule(new Schedule(savedProfiles, savedRange));
-		savedProfiles = bestDna.getGenome().getProfiles();
-		sendMessage(lastUserId,
-				bestDna.getGenome().hebtoString());
-	}
-
-	private static void manualEdit() throws IOException {
-		String strNames = "";
-		for (int i = 0; i < savedProfiles.length-1; i++) {
-			strNames+="[{\"text\":\""+URLEncoder.encode(savedProfiles[i].getName(), StandardCharsets.UTF_8)+"\"}],";
-		}
-		strNames+="[{\"text\":\""+URLEncoder.encode(savedProfiles[savedProfiles.length-1].getName(), StandardCharsets.UTF_8)+"\"}]";
-
-		sendMessage(lastUserId,
-				"בחר למי לבצע שינוי במקלדת המותאמת האישית!👪",
-				"reply_markup={\"keyboard\":["+strNames+"]}");
-
-		getUpdates(-1);
-
-		String name=getMsg(0);
-
-		sendMessage(lastUserId,
-				"מצויין😃,עכשיו תבחר מה אתה רוצה לשנות!📊",
-				"reply_markup={\"keyboard\":["+
-						"[{\"text\":\""+URLEncoder.encode("שם", StandardCharsets.UTF_8)+"\"}],"+
-						"[{\"text\":\""+URLEncoder.encode("העדפה", StandardCharsets.UTF_8)+"\"}],"+
-						"[{\"text\":\""+URLEncoder.encode("עמדה מועדפת", StandardCharsets.UTF_8)+"\"}],"+
-						"[{\"text\":\""+URLEncoder.encode("שעה מועדפת", StandardCharsets.UTF_8)+"\"}],"+
-						"[{\"text\":\""+URLEncoder.encode("עמדה סופית", StandardCharsets.UTF_8)+"\"}],"+
-						"[{\"text\":\""+URLEncoder.encode("שעה סופית", StandardCharsets.UTF_8)+"\"}]"+
-				"]}");
-
-		getUpdates(-1);
-
-		switch (getMsg(0).toLowerCase()) {
-		case "שם":
-			for (int i = 0; i < savedProfiles.length; i++) {
-				if (savedProfiles[i].getName().equals(name)) {
-					sendMessage(lastUserId,
-							"עכשיו תשלח את השם החדש בשביל "+name,
-							"reply_markup={\"remove_keyboard\":true}");
-					getUpdates(-1);
-
-					savedProfiles[i].setName(getMsg(0));
-
-					sendMessage(lastUserId,
-							name+" שונה ל"+getMsg(0)+"👨");
-					return;
-				}
-			}
-			break;
-
-		case "העדפה":
-			for (int i = 0; i < savedProfiles.length; i++) {
-				if (savedProfiles[i].getName().equals(name)) {
-					sendMessage(lastUserId,
-							"עכשיו תשלח את ההעדפה החדשה בשביל "+name,
-							"reply_markup={\"remove_keyboard\":true}");
-					getUpdates(-1);
-
-					savedProfiles[i].setPriority(Float.valueOf(getMsg(0)));
-
-					sendMessage(lastUserId,
-							"הפעולה הושלמה בהצלחה🤖");
-					return;
-				}
-			}
-			break;
-
-		case "עמדה מועדפת":
-			for (int i = 0; i < savedProfiles.length; i++) {
-				if (savedProfiles[i].getName().equals(name)) {
-					sendMessage(lastUserId,
-							"עכשיו תשלח את העמדה החדשה בשביל "+name,
-							"reply_markup={\"remove_keyboard\":true}");
-					getUpdates(-1);
-
-					savedProfiles[i].setPreference(new int[] {Integer.valueOf(getMsg(0)), savedProfiles[i].getPreference()[1]});
-
-					sendMessage(lastUserId,
-							"הפעולה הושלמה בהצלחה🤖");
-					return;
-				}
-			}
-			break;
-
-		case "שעה מועדפת":
-			for (int i = 0; i < savedProfiles.length; i++) {
-				if (savedProfiles[i].getName().equals(name)) {
-					sendMessage(lastUserId,
-							"עכשיו תשלח את השעה החדשה בשביל "+name,
-							"reply_markup={\"remove_keyboard\":true}");
-					getUpdates(-1);
-
-					savedProfiles[i].setPreference(new int[] {savedProfiles[i].getPreference()[0], Integer.valueOf(getMsg(0))});
-
-					sendMessage(lastUserId,
-							"הפעולה הושלמה בהצלחה🤖");
-					return;
-				}
-			}
-			break;
-
-		case "עמדה סופית":
-			//TODO MAKE SURE YOU NOTICE THE USER AND SWAP THE STATION WITH SOMNE ELSE!!!
-			for (int i = 0; i < savedProfiles.length; i++) {
-				if (savedProfiles[i].getName().equals(name)) {
-					sendMessage(lastUserId,
-							"עכשיו תשלח את העמדה החדשה בשביל "+name,
-							"reply_markup={\"remove_keyboard\":true}");
-					getUpdates(-1);
-
-					savedProfiles[i].setPost(new int[] {Integer.valueOf(getMsg(0)), savedProfiles[i].getPost()[1]});
-
-					sendMessage(lastUserId,
-							"הפעולה הושלמה בהצלחה🤖");
-					return;
-				}
-			}
-			break;
-
-		case "שעה סופית":
-			//TODO MAKE SURE YOU NOTICE THE USER AND SWAP THE STATION WITH SOMNE ELSE!!!
-			for (int i = 0; i < savedProfiles.length; i++) {
-				if (savedProfiles[i].getName().equals(name)) {
-					sendMessage(lastUserId,
-							"עכשיו תשלח את השעה החדשה בשביל "+name,
-							"reply_markup={\"remove_keyboard\":true}");
-					getUpdates(-1);
-
-					savedProfiles[i].setPost(new int[] {savedProfiles[i].getPost()[0], Integer.valueOf(getMsg(0))});
-
-					sendMessage(lastUserId,
-							"הפעולה הושלמה בהצלחה🤖");
-					return;
-				}
-			}
-			break;
-
-		default:
-			throw new IOException();
-		}
-	}
+//	private static void manualEdit() throws IOException {
+//		String strNames = "";
+//		for (int i = 0; i < savedProfiles.length-1; i++) {
+//			strNames+="[{\"text\":\""+URLEncoder.encode(savedProfiles[i].getName(), StandardCharsets.UTF_8)+"\"}],";
+//		}
+//		strNames+="[{\"text\":\""+URLEncoder.encode(savedProfiles[savedProfiles.length-1].getName(), StandardCharsets.UTF_8)+"\"}]";
+//
+//		sendMessage(lastUserId,
+//				"בחר למי לבצע שינוי במקלדת המותאמת האישית!👪",
+//				"reply_markup={\"keyboard\":["+strNames+"]}");
+//
+//		getUpdates(-1);
+//
+//		String name=getMsg(0);
+//
+//		sendMessage(lastUserId,
+//				"מצויין😃,עכשיו תבחר מה אתה רוצה לשנות!📊",
+//				"reply_markup={\"keyboard\":["+
+//						"[{\"text\":\""+URLEncoder.encode("שם", StandardCharsets.UTF_8)+"\"}],"+
+//						"[{\"text\":\""+URLEncoder.encode("העדפה", StandardCharsets.UTF_8)+"\"}],"+
+//						"[{\"text\":\""+URLEncoder.encode("עמדה מועדפת", StandardCharsets.UTF_8)+"\"}],"+
+//						"[{\"text\":\""+URLEncoder.encode("שעה מועדפת", StandardCharsets.UTF_8)+"\"}],"+
+//						"[{\"text\":\""+URLEncoder.encode("עמדה סופית", StandardCharsets.UTF_8)+"\"}],"+
+//						"[{\"text\":\""+URLEncoder.encode("שעה סופית", StandardCharsets.UTF_8)+"\"}]"+
+//				"]}");
+//
+//		getUpdates(-1);
+//
+//		switch (getMsg(0).toLowerCase()) {
+//		case "שם":
+//			for (int i = 0; i < savedProfiles.length; i++) {
+//				if (savedProfiles[i].getName().equals(name)) {
+//					sendMessage(lastUserId,
+//							"עכשיו תשלח את השם החדש בשביל "+name,
+//							"reply_markup={\"remove_keyboard\":true}");
+//					getUpdates(-1);
+//
+//					savedProfiles[i].setName(getMsg(0));
+//
+//					sendMessage(lastUserId,
+//							name+" שונה ל"+getMsg(0)+"👨");
+//					return;
+//				}
+//			}
+//			break;
+//
+//		case "העדפה":
+//			for (int i = 0; i < savedProfiles.length; i++) {
+//				if (savedProfiles[i].getName().equals(name)) {
+//					sendMessage(lastUserId,
+//							"עכשיו תשלח את ההעדפה החדשה בשביל "+name,
+//							"reply_markup={\"remove_keyboard\":true}");
+//					getUpdates(-1);
+//
+//					savedProfiles[i].setPriority(Float.valueOf(getMsg(0)));
+//
+//					sendMessage(lastUserId,
+//							"הפעולה הושלמה בהצלחה🤖");
+//					return;
+//				}
+//			}
+//			break;
+//
+//		case "עמדה מועדפת":
+//			for (int i = 0; i < savedProfiles.length; i++) {
+//				if (savedProfiles[i].getName().equals(name)) {
+//					sendMessage(lastUserId,
+//							"עכשיו תשלח את העמדה החדשה בשביל "+name,
+//							"reply_markup={\"remove_keyboard\":true}");
+//					getUpdates(-1);
+//
+//					savedProfiles[i].setPreference(new int[] {Integer.valueOf(getMsg(0)), savedProfiles[i].getPreference()[1]});
+//
+//					sendMessage(lastUserId,
+//							"הפעולה הושלמה בהצלחה🤖");
+//					return;
+//				}
+//			}
+//			break;
+//
+//		case "שעה מועדפת":
+//			for (int i = 0; i < savedProfiles.length; i++) {
+//				if (savedProfiles[i].getName().equals(name)) {
+//					sendMessage(lastUserId,
+//							"עכשיו תשלח את השעה החדשה בשביל "+name,
+//							"reply_markup={\"remove_keyboard\":true}");
+//					getUpdates(-1);
+//
+//					savedProfiles[i].setPreference(new int[] {savedProfiles[i].getPreference()[0], Integer.valueOf(getMsg(0))});
+//
+//					sendMessage(lastUserId,
+//							"הפעולה הושלמה בהצלחה🤖");
+//					return;
+//				}
+//			}
+//			break;
+//
+//		case "עמדה סופית":
+//			//TODO MAKE SURE YOU NOTICE THE USER AND SWAP THE STATION WITH SOMNE ELSE!!!
+//			for (int i = 0; i < savedProfiles.length; i++) {
+//				if (savedProfiles[i].getName().equals(name)) {
+//					sendMessage(lastUserId,
+//							"עכשיו תשלח את העמדה החדשה בשביל "+name,
+//							"reply_markup={\"remove_keyboard\":true}");
+//					getUpdates(-1);
+//
+//					savedProfiles[i].setPost(new int[] {Integer.valueOf(getMsg(0)), savedProfiles[i].getPost()[1]});
+//
+//					sendMessage(lastUserId,
+//							"הפעולה הושלמה בהצלחה🤖");
+//					return;
+//				}
+//			}
+//			break;
+//
+//		case "שעה סופית":
+//			//TODO MAKE SURE YOU NOTICE THE USER AND SWAP THE STATION WITH SOMNE ELSE!!!
+//			for (int i = 0; i < savedProfiles.length; i++) {
+//				if (savedProfiles[i].getName().equals(name)) {
+//					sendMessage(lastUserId,
+//							"עכשיו תשלח את השעה החדשה בשביל "+name,
+//							"reply_markup={\"remove_keyboard\":true}");
+//					getUpdates(-1);
+//
+//					savedProfiles[i].setPost(new int[] {savedProfiles[i].getPost()[0], Integer.valueOf(getMsg(0))});
+//
+//					sendMessage(lastUserId,
+//							"הפעולה הושלמה בהצלחה🤖");
+//					return;
+//				}
+//			}
+//			break;
+//
+//		default:
+//			throw new IOException();
+//		}
+//	}
 
 	public static void main(String[] args) throws IOException {
 		data = new TelegramData(); //contains data for the bot
@@ -483,13 +479,13 @@ public class TelegramController {
 		}
 	}
 
-	private static void sendOptions(String text) throws IOException {
-		httpsRequstMethod("sendMessage", "chat_id="+lastUserId+"&text="+URLEncoder.encode(text, StandardCharsets.UTF_8)
-		+"&reply_markup={\"keyboard\":["
-		+ "[{\"text\":\""+URLEncoder.encode("רשימה חדשה", StandardCharsets.UTF_8)+"\"}],"
-		+ "[{\"text\":\""+URLEncoder.encode("שינוי ידני", StandardCharsets.UTF_8)+"\"}],"
-		+ "[{\"text\":\""+URLEncoder.encode("חישוב רשימת שמות", StandardCharsets.UTF_8)+"\"}]"
-		+ "]}");
-	}
+//	private static void sendOptions(String text) throws IOException {
+//		httpsRequstMethod("sendMessage", "chat_id="+lastUserId+"&text="+URLEncoder.encode(text, StandardCharsets.UTF_8)
+//		+"&reply_markup={\"keyboard\":["
+//		+ "[{\"text\":\""+URLEncoder.encode("רשימה חדשה", StandardCharsets.UTF_8)+"\"}],"
+//		+ "[{\"text\":\""+URLEncoder.encode("שינוי ידני", StandardCharsets.UTF_8)+"\"}],"
+//		+ "[{\"text\":\""+URLEncoder.encode("חישוב רשימת שמות", StandardCharsets.UTF_8)+"\"}]"
+//		+ "]}");
+//	}
 
 }
