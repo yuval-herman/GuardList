@@ -132,19 +132,6 @@ public class TelegramChat implements Runnable{
 	}
 
 	private void addTimeToList() throws IOException, ParseException {
-		sendMessage(userId,"מצב פשוט או מתקדם?", "reply_markup={\"keyboard\":[["
-				+ "{\"text\":\""+URLEncoder.encode("מתקדם", StandardCharsets.UTF_8)+"\"},"
-				+ "{\"text\":\""+URLEncoder.encode("פשוט", StandardCharsets.UTF_8)+"\"}"
-				+ "]]}");
-		getUpdates();
-
-		String mode = getMsg();
-		if (!mode.equals("פשוט" ) && !mode.equals("מתקדם")) {
-			sendMessage(userId,"קודם תבחר מצב פשוט או מתקדם🤨");
-			sendOptions("מה לעשות?");
-			return;
-		}
-
 		sendMessage(userId,"עכשיו שלח את הרשימה📜",
 				"reply_markup={\"remove_keyboard\":true}");
 		getUpdates();
@@ -155,14 +142,27 @@ public class TelegramChat implements Runnable{
 		SimpleDateFormat dateFormater = new SimpleDateFormat("HH:mm");
 		Date startHour = dateFormater.parse(getMsg());
 		Date endHour = null;
+		int guardTime = 0;
 		String finishedList = "";
-		switch (mode) {
-		case "פשוט":
-			sendMessage(userId,"עכשיו שלח את שעת הסיום של השמירות🕐");
-			getUpdates();
+		sendMessage(userId,"עכשיו שלח את שעת הסיום של השמירות או זמן שמירה של כל אחד בדקות🕐");
+		getUpdates();
+		String lstMsg = getMsg();
+		boolean byTime = false;
+		try {
+			endHour = dateFormater.parse(lstMsg);
+			byTime=true;
+		} catch (ParseException e) {
+			try {
+				guardTime = Integer.valueOf(lstMsg);
+			} catch (java.lang.NumberFormatException e2) {
+				sendMessage(userId,"שלחת הודעה לא חוקית, נסה שוב");
+				sendMessage(userId,"אני צריך או מספר בדקות🔢 או שעה בפורמט דקות:שעה, לדוגמא 5:50");
+				return;
+			}
 
-			endHour = dateFormater.parse(getMsg());
+		}
 
+		if (byTime) {
 			if (endHour.getTime()<startHour.getTime()) { //add one day if the end hour is smaller then start hour
 				Calendar c = Calendar.getInstance();     //i.e the time is earlier the the start
 				c.setTime(endHour);
@@ -171,20 +171,39 @@ public class TelegramChat implements Runnable{
 			}
 
 
-			float guardSessionHours = Math.abs((startHour.getTime() - endHour.getTime())/1000f/60f/60f);
-			float sessionTimeHours = Math.abs((startHour.getTime() - endHour.getTime())/nameList.length/1000f/60f/60f);
-			sendMessage(userId,"זמן כל השמירה: "+guardSessionHours+"\nזמן כל שמירה: "+sessionTimeHours);
-
-			finishedList = "";
+			String guardSessionHours = dateFormater.format(Math.abs((startHour.getTime() - endHour.getTime())));
+			float sessionTimeHours = Math.abs((startHour.getTime() - endHour.getTime())/1000f/60f/nameList.length);
+			sendMessage(userId,"זמן כל השמירה: "+guardSessionHours+"\nזמן כל שמירה: "+sessionTimeHours+" דקות");
 
 			for (int i = 0; i < nameList.length; i++) {
 				finishedList+= dateFormater.format(startHour.getTime()+
 						(Math.abs(startHour.getTime() - endHour.getTime())/nameList.length)*i);
 				finishedList+= " " + nameList[i] + "\n";
 			}
-			break;
-
-		case "מתקדם":
+			finishedList+= dateFormater.format(startHour.getTime()+
+					(Math.abs(startHour.getTime() - endHour.getTime())/nameList.length)*nameList.length)+"...";
+		} else {
+			sendMessage(userId,"שלח לי את מספר הסבבים שאתה רוצה לשמור, אתה יכול לשלוח 1 או 0 בשביל סבב אחד");
+			getUpdates();
+			int loops = Integer.valueOf(getMsg());
+			
+			float guardSessionHours = (guardTime*loops*nameList.length)/60f;
+			int sessionTimeHours = guardTime*loops;
+			sendMessage(userId,"זמן כל השמירה: "+guardSessionHours+" שעות\nזמן כולל לכל אדם: "+sessionTimeHours+"דקות ");
+						
+			Calendar c = Calendar.getInstance();
+			c.setTime(startHour);
+			
+			for (int i = 0; i < loops; i++) {
+				for (int j = 0; j < nameList.length; j++) {
+					finishedList+= dateFormater.format(c.getTime());
+					c.add(Calendar.MINUTE, guardTime);
+					//                                 (startHour.getTime()*(i+1))+(maxMinutes*1000*60*i1)+(maxMinutes*1000*60*i)*2
+					finishedList+= " " + nameList[j] + "\n";
+				}
+			}
+		}
+		/*case "מתקדם":
 			sendMessage(userId,"(בדקות)מה הזמן המקסימלי לשמירה אחת?⏲️");
 			getUpdates();
 
@@ -233,21 +252,8 @@ public class TelegramChat implements Runnable{
 						finishedList+= " " + nameList[i1] + "\n";
 					}
 				}
-				break;
+				break;*/
 
-			case "לפי זמן שמירה":
-
-				break;
-
-			default:
-				break;
-			}
-			break;
-
-		default:
-
-			break;
-		}
 		sendMessage(userId, finishedList);
 		sendMessage(userId, "בהצלחה!",
 				"reply_markup={\"remove_keyboard\":true}");
