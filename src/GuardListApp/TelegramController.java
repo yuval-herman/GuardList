@@ -1,13 +1,20 @@
 package GuardListApp;
 
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.Thread.State;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.attribute.FileAttribute;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 import org.json.JSONObject;
 
@@ -421,6 +428,9 @@ public class TelegramController {
 						profilesMap.put(userId, new ProfileData(new Profile[0],
 								new Profile((String)update.query("/message/from/first_name")+" "+(String)update.query("/message/from/last_name"),0f,null), 
 								null, false));//TODO improve this
+						if(!remeberId(userId)) {
+							remeberId(userId, (String)update.query("/message/from/first_name")+" "+(String)update.query("/message/from/last_name"));
+						}
 					}
 					TelegramChat chat = new TelegramChat(userId, update, profilesMap.get(userId), data); //make the new chat
 					Thread chatThread = new Thread(chat);
@@ -476,6 +486,31 @@ public class TelegramController {
 				sendOptions("נסה להשתמש במקלדת המותאמת אישית כדי לשלוח פקודה שאני יבין👇");
 				break;
 			}*/
+		}
+	}
+
+	private static boolean remeberId(int id) {
+		try {
+			List<String> idNames = Files.readAllLines(Paths.get("nameIds.txt"));
+			for (String idName : idNames) {
+				if (id == Integer.valueOf(idName.split(",")[0])) {
+					return true;
+				}
+			}
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return false;
+	}
+
+	private static void remeberId(int userId, String name) throws IOException {
+		Files.createFile(Path.of("nameIds.txt"));
+		try(FileWriter fileWriter = new FileWriter("nameIds.txt")) {
+		    fileWriter.write(userId+","+name);
+		    fileWriter.close();
+		} catch (IOException e) {
+		   	e.printStackTrace();
 		}
 	}
 
