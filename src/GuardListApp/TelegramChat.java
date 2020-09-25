@@ -89,16 +89,16 @@ public class TelegramChat implements Runnable{
 				sendOptions("נסה להשתמש במקלדת המותאמת אישית כדי לשלוח פקודה שאני יבין👇");
 				break;
 			}
+			sendOptions("עוד משהו?");
 		} catch (Exception e) {
 			try {
-				sendMessage(userId,
-						"קרתה תקלה, נסה שוב🤪.",
-						"reply_markup={\"remove_keyboard\":true}");
+				sendOptions("קרתה תקלה, נסה שוב🤪.");
 			} catch (IOException e1) {
 				// TODO Auto-generated catch block
 				e1.printStackTrace();
 			}
 		}
+		
 		exit();
 	}
 
