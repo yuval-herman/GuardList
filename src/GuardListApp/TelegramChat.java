@@ -46,43 +46,23 @@ public class TelegramChat implements Runnable{
 	@Override
 	public void run() {
 		// TODO Auto-generated method stub
-		switch (getMsg().toLowerCase()) {
-		case "רשימה חדשה":
-			try {
-				makeSchedule();
-			} catch (Exception e) {
-				try {
-					TelegramApi.sendMessage(data.getRequestUrl(), userId,
-							"קרתה תקלה, נסה שוב🤪.",
-							"reply_markup={\"remove_keyboard\":true}");
-				} catch (IOException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
-				}
-			}
-			break;
+		try {
 
-		case "חישוב רשימת שמות":
-			try {
+
+			switch (getMsg().toLowerCase()) {
+			case "רשימה חדשה":
+				makeSchedule();
+				break;
+
+			case "חישוב רשימת שמות":
 				if (data.savedProfiles==null||data.savedProfiles.length==0) {
 					sendMessage(userId,"אין מידע על אנשים במערכת, נסה קודם ליצור רשימת שמות📓");
 					break;
 				}
 				calcSavedProfiles();
-			} catch (Exception e) {
-				try {
-					sendMessage(userId,
-							"קרתה תקלה, נסה שוב🤪.",
-							"reply_markup={\"remove_keyboard\":true}");
-				} catch (IOException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
-				}
-			}
-			break;
+				break;
 
-		case "שינוי ידני":
-			try {
+			case "שינוי ידני":
 				if (data.savedProfiles==null||data.savedProfiles.length==0) {
 					sendMessage(userId,"אין מידע על אנשים במערכת, נסה קודם ליצור רשימת שמות📓");
 					break;
@@ -92,43 +72,54 @@ public class TelegramChat implements Runnable{
 						"שבצ\"ק מעודכן:");
 				sendMessage(userId,
 						new Schedule(data.savedProfiles, data.savedRange).hebtoString());
-			} catch (Exception e) {
-				try {
-					sendMessage(userId,
-							"קרתה תקלה, נסה שוב🤪.",
-							"reply_markup={\"remove_keyboard\":true}");
-				} catch (IOException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
-				}
-			}
-			break;
 
-		case "הוספת שעות לרשימה קיימת":
-			try {
+				break;
+
+			case "הוספת שעות לרשימה קיימת":
 				addTimeToList();
-			} catch (Exception e) {
-				try {
-					sendMessage(userId,
-							"קרתה תקלה, נסה שוב🤪.",
-							"reply_markup={\"remove_keyboard\":true}");
-				} catch (IOException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
-				}
-			}
-			break;
+				break;
 
-		default:
-			try {
+			case "שמירת מידע אישי":
+				savePersonalInfo();
+				break;
+
+			case "/start":
+				sendOptions("השתמש במקלדת למטה כדי להשתמש באופציות השונות👇");
+				break;
+
+			default:
 				sendOptions("נסה להשתמש במקלדת המותאמת אישית כדי לשלוח פקודה שאני יבין👇");
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				break;
 			}
-			break;
+		} catch (Exception e) {
+			try {
+				sendMessage(userId,
+						"קרתה תקלה, נסה שוב🤪.",
+						"reply_markup={\"remove_keyboard\":true}");
+			} catch (IOException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
 		}
 		exit();
+	}
+
+	private void savePersonalInfo() throws IOException {
+		//		Profile[] connnectedProfiles; TODO add later
+		sendMessage(userId, "כאן נמלא עליך את כל הפרטים שחשובים לתפקודי👨‍💻");
+
+		sendMessage(userId, "באיזו עמדת שמירה תעדיף לשמור?🏠");
+		int station = Integer.valueOf(getMsg());
+
+		sendMessage(userId, "ובאיזה שעה תעדיף לשמור?🕒");
+		int time = Integer.valueOf(getMsg());
+
+		profileData.getProfile().setPreference(new int[] {station, time});
+
+		sendMessage(userId, "מגניב!🙃");
+		sendMessage(userId, "האם אתה האחראי על הרשימות?🧐(כן/לא)");//TODO implement 
+
+		boolean isAdmin;
 	}
 
 	private void addTimeToList() throws IOException, ParseException {
@@ -181,19 +172,19 @@ public class TelegramChat implements Runnable{
 				finishedList+= " " + nameList[i] + "\n";
 			}
 			finishedList+= dateFormater.format(startHour.getTime()+
-					(Math.abs(startHour.getTime() - endHour.getTime())/nameList.length)*nameList.length)+"...";
+					(Math.abs(startHour.getTime() - endHour.getTime())/nameList.length)*nameList.length)+" ...";
 		} else {
 			sendMessage(userId,"שלח לי את מספר הסבבים שאתה רוצה לשמור, אתה יכול לשלוח 1 או 0 בשביל סבב אחד");
 			getUpdates();
 			int loops = Integer.valueOf(getMsg());
-			
+
 			float guardSessionHours = (guardTime*loops*nameList.length)/60f;
 			int sessionTimeHours = guardTime*loops;
 			sendMessage(userId,"זמן כל השמירה: "+guardSessionHours+" שעות\nזמן כולל לכל אדם: "+sessionTimeHours+"דקות ");
-						
+
 			Calendar c = Calendar.getInstance();
 			c.setTime(startHour);
-			
+
 			for (int i = 0; i < loops; i++) {
 				for (int j = 0; j < nameList.length; j++) {
 					finishedList+= dateFormater.format(c.getTime());
@@ -202,57 +193,8 @@ public class TelegramChat implements Runnable{
 					finishedList+= " " + nameList[j] + "\n";
 				}
 			}
+			finishedList+= dateFormater.format(c.getTime()) + "... ";
 		}
-		/*case "מתקדם":
-			sendMessage(userId,"(בדקות)מה הזמן המקסימלי לשמירה אחת?⏲️");
-			getUpdates();
-
-			int maxMinutes = Integer.valueOf(getMsg());
-
-			sendMessage(userId,"לפי שעת התחלה וסוף או לפי זמן שמירה?", "reply_markup={\"keyboard\":[["
-					+ "{\"text\":\""+URLEncoder.encode("לפי שעת התחלה וסוף", StandardCharsets.UTF_8)+"\"},"
-					+ "{\"text\":\""+URLEncoder.encode("לפי זמן שמירה", StandardCharsets.UTF_8)+"\"}"
-					+ "]]}");
-			getUpdates();
-			String lstmsg = getMsg();
-			mode += "\n" + lstmsg;
-
-			switch (lstmsg) {
-			case "לפי שעת התחלה וסוף":
-				sendMessage(userId,"עכשיו שלח את שעת הסיום של השמירות🕐",
-						"reply_markup={\"remove_keyboard\":true}");
-				getUpdates();
-
-				endHour = dateFormater.parse(getMsg());
-
-				if (endHour.getTime()<startHour.getTime()) { //add one day if the end hour is smaller then start hour
-					Calendar c = Calendar.getInstance();     //i.e the time is earlier the the start
-					c.setTime(endHour);
-					c.add(Calendar.DAY_OF_MONTH, 1);
-					endHour=c.getTime();
-				}
-
-				int loops = 1;
-				if (Math.abs((startHour.getTime() - endHour.getTime())/nameList.length/1000f/60f)>maxMinutes) { //calculate the amount of loops needed to stay below max minutes
-					float timeMinutes = Math.abs((startHour.getTime() - endHour.getTime())/1000f/60f);
-					int i=0;
-					while (timeMinutes%maxMinutes*nameList.length>1) {
-						System.out.println("loops " + timeMinutes/(maxMinutes*nameList.length));
-						System.out.println("module " + timeMinutes%(maxMinutes*nameList.length));
-						System.out.println("maxMinutes " + maxMinutes);
-						i++;
-						System.out.println(i);
-						maxMinutes-=1/60;
-					}
-					loops = Math.round(timeMinutes/(maxMinutes*nameList.length));
-				}
-				for (int i = 0; i < loops; i++) {
-					for (int i1 = 0; i1 < nameList.length; i1++) {
-						finishedList+= dateFormater.format((startHour.getTime()*(i+1))+(maxMinutes*1000*60*i1)+(maxMinutes*1000*60*i)*2);
-						finishedList+= " " + nameList[i1] + "\n";
-					}
-				}
-				break;*/
 
 		sendMessage(userId, finishedList);
 		sendMessage(userId, "בהצלחה!",

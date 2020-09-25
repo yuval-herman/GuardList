@@ -422,8 +422,8 @@ public class TelegramController {
 								new Profile((String)update.query("/message/from/first_name")+" "+(String)update.query("/message/from/last_name"),0f,null), 
 								null, false));//TODO improve this
 					}
-					TelegramChat chat = new TelegramChat(userId, update, profilesMap.get(userId), data); //make the new chat
 					Thread chatThread = new Thread(chat);
+					TelegramChat chat = new TelegramChat(userId, update, profilesMap.get(userId), data); //make the new chat
 					chatThread.start();
 					activeChats.add(new Pair<TelegramChat, Thread>(chat, chatThread));
 				}

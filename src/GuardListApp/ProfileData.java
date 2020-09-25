@@ -5,7 +5,7 @@ import dna.Schedule;
 
 public class ProfileData {
 	private Profile[] connnectedProfiles;
-	Profile profile;
+	private Profile profile;
 	private Schedule schedule;
 	private boolean isAdmin;
 	
@@ -20,6 +20,12 @@ public class ProfileData {
 	}
 	public void setConnnectedProfiles(Profile[] connnectedProfiles) {
 		this.connnectedProfiles = connnectedProfiles;
+	}
+	public Profile getProfile() {
+		return profile;
+	}
+	public void setProfile(Profile profile) {
+		this.profile = profile;
 	}
 	public Schedule getSchedule() {
 		return schedule;
