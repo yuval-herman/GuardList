@@ -47,8 +47,6 @@ public class TelegramChat implements Runnable{
 	public void run() {
 		// TODO Auto-generated method stub
 		try {
-
-
 			switch (getMsg().toLowerCase()) {
 			case "רשימה חדשה":
 				makeSchedule();
