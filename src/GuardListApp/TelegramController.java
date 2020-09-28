@@ -92,8 +92,12 @@ public class TelegramController {
 			if (ret.getJSONArray("result").length()!=0) {
 				TelegramController.ret = ret;
 				idIncrement();
-				lastUserId = ((JSONObject) ((JSONObject) ((JSONObject) ret.getJSONArray("result")
+				try {
+					lastUserId = ((JSONObject) ((JSONObject) ((JSONObject) ret.getJSONArray("result")
 						.get(ret.getJSONArray("result").length()-1)).get("message")).get("from")).getInt("id");
+				} catch (org.json.JSONException e) {
+					// TODO: handle exception
+				}
 				synchronized (data) {
 					data.unread.add(ret);
 				}
@@ -415,6 +419,18 @@ public class TelegramController {
 			System.out.println(ret); //prints the 1st update
 			for (Object updateObj : ret.getJSONArray("result")) { //loops througth all update objects
 				JSONObject update = (JSONObject) updateObj; //convert from Object to JSONObject
+				if (update.has("callback_query")) {
+					if (((String) update.query("/callback_query/data")).charAt(0)=='1') {
+						httpsRequstMethod("answerCallbackQuery", "callback_query_id=" + (String) update.query("/callback_query/id"), "text=מישהו נוסף אליך לקבוצה!");
+						profilesMap.get((int) update.query("/callback_query/from/id")).addConnnectedProfile(profilesMap.get(Integer.valueOf(((String) update.query("/callback_query/data")).substring(1))));
+						sendMessage(Integer.valueOf(((String) update.query("/callback_query/data")).substring(1))
+								, (String) update.query("/callback_query/from/first_name") + " " + (String) update.query("/callback_query/from/last_name") + " צירף אותך לקבוצה שלו👨‍👩‍👧‍👦");
+					} else {
+						sendMessage(Integer.valueOf(((String) update.query("/callback_query/data")).substring(1))
+								, (String) update.query("/callback_query/from/first_name") + " " + (String) update.query("/callback_query/from/last_name") + " סירב לבקשתך להצטרף לקבוצה🙁");
+					}
+					continue;
+				}
 				int userId = (int) update.query("/message/from/id"); //gets the user id
 
 				boolean found = false;
@@ -435,7 +451,7 @@ public class TelegramController {
 				if (!found) { //if no active chat is waiting for a message from that user create a new chat
 					if (!profilesMap.containsKey(userId)) { //if there is no data about the user
 						profilesMap.put(userId,
-								new ProfileData(new Profile[0],
+								new ProfileData(new ProfileData[0],
 										new Profile(
 												(String)update.query("/message/from/first_name")+" "+(String)update.query("/message/from/last_name")
 												,0f
@@ -451,54 +467,6 @@ public class TelegramController {
 					activeChats.add(new Pair<TelegramChat, Thread>(chat, chatThread));
 				}
 			}
-
-			/*switch (getMsg(0).toLowerCase()) {
-			case "רשימה חדשה":
-				try {
-					makeSchedule();
-				} catch (Exception e) {
-					sendMessage(lastUserId,
-							"קרתה תקלה, נסה שוב🤪.",
-							"reply_markup={\"remove_keyboard\":true}");
-				}
-				break;
-
-			case "חישוב רשימת שמות":
-				try {
-					if (savedProfiles==null||savedProfiles.length==0) {
-						sendMessage(lastUserId,"אין מידע על אנשים במערכת, נסה קודם ליצור רשימת שמות📓");
-						break;
-					}
-					calcSavedProfiles();
-				} catch (Exception e) {
-					sendMessage(lastUserId,
-							"קרתה תקלה, נסה שוב🤪.",
-							"reply_markup={\"remove_keyboard\":true}");
-				}
-				break;
-
-			case "שינוי ידני":
-				try {
-					if (savedProfiles==null||savedProfiles.length==0) {
-						sendMessage(lastUserId,"אין מידע על אנשים במערכת, נסה קודם ליצור רשימת שמות📓");
-						break;
-					}
-					manualEdit();
-					sendMessage(lastUserId,
-							"שבצ\"ק מעודכן:");
-					sendMessage(lastUserId,
-							new Schedule(savedProfiles, savedRange).hebtoString());
-				} catch (Exception e) {
-					sendMessage(lastUserId,
-							"קרתה תקלה, נסה שוב🤪.",
-							"reply_markup={\"remove_keyboard\":true}");
-				}
-				break;
-
-			default:
-				sendOptions("נסה להשתמש במקלדת המותאמת אישית כדי לשלוח פקודה שאני יבין👇");
-				break;
-			}*/
 		}
 	}
 

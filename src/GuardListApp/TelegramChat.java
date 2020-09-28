@@ -132,7 +132,10 @@ public class TelegramChat implements Runnable{
 				if (name.equals(idName.split(",")[1])) {
 					found = true;
 					sendMessage(userId, "רשמתי✅");
-					sendKeyboard(Integer.valueOf(idName.split(",")[0]), profileData.getProfile().getName() + "רוצה להצטרף אליך לקבוצה, לאשר?", "כן", "לא");
+					sendInlineKeyboard(Integer.valueOf(idName.split(",")[0])
+							, profileData.getProfile().getName() + "רוצה להצטרף אליך לקבוצה, לאשר?"
+							, new String[] {"כן","1"+userId}
+					, new String[] {"לא","0"+userId});
 					break;
 				}
 			}
@@ -276,6 +279,15 @@ public class TelegramChat implements Runnable{
 		}
 		TelegramApi.httpsRequstMethod(data.getRequestUrl(), "sendMessage", "chat_id="+chat_id+"&text="+URLEncoder.encode(text, StandardCharsets.UTF_8)
 		+"&reply_markup={\"keyboard\":[" + keyboard + "]}");
+	}
+
+	private void sendInlineKeyboard(int chat_id, String text, String[]... buttons) throws IOException {
+		String keyboard = "";
+		for (int i = 0; i < buttons.length; i++) {
+			keyboard += "[{\"text\":\""+URLEncoder.encode(buttons[i][0], StandardCharsets.UTF_8)+"\", \"callback_data\":\""+buttons[i][1]+"\"}]" + (i < buttons.length-1 ? "," : "");
+		}
+		TelegramApi.httpsRequstMethod(data.getRequestUrl(), "sendMessage", "chat_id="+chat_id+"&text="+URLEncoder.encode(text, StandardCharsets.UTF_8)
+		+"&reply_markup={\"inline_keyboard\":[" + keyboard + "]}");
 	}
 
 	private void makeSchedule() throws IOException {

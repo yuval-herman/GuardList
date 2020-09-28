@@ -4,21 +4,21 @@ import dna.Profile;
 import dna.Schedule;
 
 public class ProfileData {
-	private Profile[] connnectedProfiles;
+	private ProfileData[] connnectedProfiles;
 	private Profile profile;
 	private Schedule schedule;
 	private boolean isAdmin;
 	
-	public ProfileData(Profile[] connnectedProfiles, Profile profile, Schedule schedule, boolean isAdmin) {
+	public ProfileData(ProfileData[] connnectedProfiles, Profile profile, Schedule schedule, boolean isAdmin) {
 		this.connnectedProfiles = connnectedProfiles;
 		this.profile = profile;
 		this.schedule = schedule;
 		this.isAdmin = isAdmin;
 	}
-	public Profile[] getConnnectedProfiles() {
+	public ProfileData[] getConnnectedProfiles() {
 		return connnectedProfiles;
 	}
-	public void setConnnectedProfiles(Profile[] connnectedProfiles) {
+	public void setConnnectedProfiles(ProfileData[] connnectedProfiles) {
 		this.connnectedProfiles = connnectedProfiles;
 	}
 	public Profile getProfile() {
@@ -38,6 +38,12 @@ public class ProfileData {
 	}
 	public void setAdmin(boolean isAdmin) {
 		this.isAdmin = isAdmin;
+	}
+	public void addConnnectedProfile(ProfileData profileData) {
+		ProfileData[] connnectedProfiles2 = new ProfileData[connnectedProfiles.length + 1];
+		System.arraycopy(connnectedProfiles, 0, connnectedProfiles2, 0, connnectedProfiles.length);
+		connnectedProfiles2[connnectedProfiles.length] = profileData;
+		this.connnectedProfiles = connnectedProfiles2;
 	}
 
 }
