@@ -1,7 +1,5 @@
 package GuardListApp;
 
-import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.Thread.State;
@@ -11,8 +9,9 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.attribute.FileAttribute;
+import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
@@ -388,6 +387,16 @@ public class TelegramController {
 	//	}
 
 	public static void main(String[] args) throws IOException {
+		try {
+			Files.createFile(Path.of("nameIds.txt"));
+		} catch (IOException e1) {
+			System.out.println("nameIds.txt exists...");
+		}
+		try {
+			Files.createFile(Path.of("adminIds.txt"));
+		} catch (IOException e1) {
+			System.out.println("adminIds.txt exists...");
+		}
 		data = new TelegramData(); //contains data for the bot
 		System.out.println("begin");
 		while (true) {
@@ -425,14 +434,18 @@ public class TelegramController {
 				}
 				if (!found) { //if no active chat is waiting for a message from that user create a new chat
 					if (!profilesMap.containsKey(userId)) { //if there is no data about the user
-						profilesMap.put(userId, new ProfileData(new Profile[0],
-								new Profile((String)update.query("/message/from/first_name")+" "+(String)update.query("/message/from/last_name"),0f,null), 
-								null, false));//TODO improve this
+						profilesMap.put(userId,
+								new ProfileData(new Profile[0],
+										new Profile(
+												(String)update.query("/message/from/first_name")+" "+(String)update.query("/message/from/last_name")
+												,0f
+												,null), 
+										null, false));//TODO improve this
 						if(!remeberId(userId)) {
 							remeberId(userId, (String)update.query("/message/from/first_name")+" "+(String)update.query("/message/from/last_name"));
 						}
 					}
-					TelegramChat chat = new TelegramChat(userId, update, profilesMap.get(userId), data); //make the new chat
+					TelegramChat chat = new TelegramChat(userId, update, profilesMap.get(userId), data, isAdmin(userId)); //make the new chat
 					Thread chatThread = new Thread(chat);
 					chatThread.start();
 					activeChats.add(new Pair<TelegramChat, Thread>(chat, chatThread));
@@ -489,6 +502,21 @@ public class TelegramController {
 		}
 	}
 
+	private static Boolean isAdmin(int id) {
+		try {
+			List<String> idNames = Files.readAllLines(Paths.get("adminIds.txt"));
+			for (String idName : idNames) {
+				if (id == Integer.valueOf(idName.split(",")[0])) {
+					return true;
+				}
+			}
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return false;
+	}
+
 	private static boolean remeberId(int id) {
 		try {
 			List<String> idNames = Files.readAllLines(Paths.get("nameIds.txt"));
@@ -504,13 +532,13 @@ public class TelegramController {
 		return false;
 	}
 
-	private static void remeberId(int userId, String name) throws IOException {
-		Files.createFile(Path.of("nameIds.txt"));
-		try(FileWriter fileWriter = new FileWriter("nameIds.txt")) {
-		    fileWriter.write(userId+","+name);
-		    fileWriter.close();
-		} catch (IOException e) {
-		   	e.printStackTrace();
+	private static void remeberId(int userId, String name){
+		try {
+			final Path path = Paths.get("nameIds.txt");
+			Files.write(path, Arrays.asList(userId+","+name), StandardCharsets.UTF_8,
+					Files.exists(path) ? StandardOpenOption.APPEND : StandardOpenOption.CREATE);
+		} catch (final IOException ioe) {
+			ioe.printStackTrace();
 		}
 	}
 

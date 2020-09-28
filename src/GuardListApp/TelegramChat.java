@@ -3,10 +3,13 @@ package GuardListApp;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 import java.util.Stack;
 import java.util.StringTokenizer;
 
@@ -35,24 +38,32 @@ public class TelegramChat implements Runnable{
 		this.userId = userId;
 	}
 
-	public TelegramChat(int userId, JSONObject activatorMsg, ProfileData profile, TelegramData data) {
+	public TelegramChat(int userId, JSONObject activatorMsg, ProfileData profile, TelegramData data, Boolean isAdmin) {
 		this.userId = userId;
 		this.activatorMsg = activatorMsg;
 		this.profileData = profile;
 		this.data = data;
 		this.unread = new Stack<JSONObject>();
+		this.isAdmin = isAdmin;
 	}
 
 	@Override
 	public void run() {
-		// TODO Auto-generated method stub
 		try {
 			switch (getMsg().toLowerCase()) {
 			case "רשימה חדשה":
+				if (!isAdmin) {
+					sendMessage(userId,"רק האחראי יכול להשתמש באופציה זו.⛔");
+					break;
+				}
 				makeSchedule();
 				break;
 
 			case "חישוב רשימת שמות":
+				if (!isAdmin) {
+					sendMessage(userId,"רק האחראי יכול להשתמש באופציה זו.⛔");
+					break;
+				}
 				if (data.savedProfiles==null||data.savedProfiles.length==0) {
 					sendMessage(userId,"אין מידע על אנשים במערכת, נסה קודם ליצור רשימת שמות📓");
 					break;
@@ -61,6 +72,10 @@ public class TelegramChat implements Runnable{
 				break;
 
 			case "שינוי ידני":
+				if (!isAdmin) {
+					sendMessage(userId,"רק האחראי יכול להשתמש באופציה זו.⛔");
+					break;
+				}
 				if (data.savedProfiles==null||data.savedProfiles.length==0) {
 					sendMessage(userId,"אין מידע על אנשים במערכת, נסה קודם ליצור רשימת שמות📓");
 					break;
@@ -98,26 +113,48 @@ public class TelegramChat implements Runnable{
 				e1.printStackTrace();
 			}
 		}
-		
+
 		exit();
 	}
 
 	private void savePersonalInfo() throws IOException {
 		//		Profile[] connnectedProfiles; TODO add later
+		sendMessage(userId, "בודק מידע...📡",
+				"reply_markup={\"remove_keyboard\":true}");
+		if (!isAdmin) {
+			sendMessage(userId, "הדבר הראשון שצריך לעשות זה להבין מי האחראי כאן👮");
+			sendMessage(userId, "שלח את השם של האחראי שלך לפי מה שהוא אמר לך לרשום!✒️");
+			getUpdates();
+			String name = getMsg();
+			boolean found = false;
+			List<String> idNames = Files.readAllLines(Paths.get("adminIds.txt"));
+			for (String idName : idNames) {
+				if (name.equals(idName.split(",")[1])) {
+					found = true;
+					sendMessage(userId, "רשמתי✅");
+					sendKeyboard(Integer.valueOf(idName.split(",")[0]), profileData.getProfile().getName() + "רוצה להצטרף אליך לקבוצה, לאשר?", "כן", "לא");
+					break;
+				}
+			}
+			if (!found) {
+				sendMessage(userId, "האחראי שלך לא נמצא⚠️, נסה שוב🔄");
+				return;
+			}
+
+		}
 		sendMessage(userId, "כאן נמלא עליך את כל הפרטים שחשובים לתפקודי👨‍💻");
 
 		sendMessage(userId, "באיזו עמדת שמירה תעדיף לשמור?🏠");
+		getUpdates();
 		int station = Integer.valueOf(getMsg());
 
 		sendMessage(userId, "ובאיזה שעה תעדיף לשמור?🕒");
+		getUpdates();
 		int time = Integer.valueOf(getMsg());
 
 		profileData.getProfile().setPreference(new int[] {station, time});
 
 		sendMessage(userId, "מגניב!🙃");
-		sendMessage(userId, "האם אתה האחראי על הרשימות?🧐(כן/לא)");//TODO implement 
-
-		boolean isAdmin;
 	}
 
 	private void addTimeToList() throws IOException, ParseException {
@@ -218,13 +255,27 @@ public class TelegramChat implements Runnable{
 	}
 
 	private void sendOptions(String text) throws IOException {
-		TelegramApi.httpsRequstMethod(data.getRequestUrl(), "sendMessage", "chat_id="+userId+"&text="+URLEncoder.encode(text, StandardCharsets.UTF_8)
-		+"&reply_markup={\"keyboard\":["
-		+ "[{\"text\":\""+URLEncoder.encode("רשימה חדשה", StandardCharsets.UTF_8)+"\"}],"
-		+ "[{\"text\":\""+URLEncoder.encode("שינוי ידני", StandardCharsets.UTF_8)+"\"}],"
-		+ "[{\"text\":\""+URLEncoder.encode("הוספת שעות לרשימה קיימת", StandardCharsets.UTF_8)+"\"}],"
-		+ "[{\"text\":\""+URLEncoder.encode("חישוב רשימת שמות", StandardCharsets.UTF_8)+"\"}]"
-		+ "]}");
+		String[] buttons = null;
+		if (isAdmin) {
+			buttons = new String[] {"רשימה חדשה"
+					,"שינוי ידני"
+					,"חישוב רשימת שמות"
+					,"שמירת מידע אישי"
+					,"הוספת שעות לרשימה קיימת"};
+		} else {
+			buttons =  new String[] {"שמירת מידע אישי"
+					,"הוספת שעות לרשימה קיימת"};
+		}
+		sendKeyboard(userId, text, buttons);
+	}
+
+	private void sendKeyboard(int chat_id, String text, String... buttons) throws IOException {
+		String keyboard = "";
+		for (int i = 0; i < buttons.length; i++) {
+			keyboard += "[{\"text\":\""+URLEncoder.encode(buttons[i], StandardCharsets.UTF_8)+"\"}]" + (i < buttons.length-1 ? "," : "");
+		}
+		TelegramApi.httpsRequstMethod(data.getRequestUrl(), "sendMessage", "chat_id="+chat_id+"&text="+URLEncoder.encode(text, StandardCharsets.UTF_8)
+		+"&reply_markup={\"keyboard\":[" + keyboard + "]}");
 	}
 
 	private void makeSchedule() throws IOException {
